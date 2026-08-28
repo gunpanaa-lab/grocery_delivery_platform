@@ -1,0 +1,18 @@
+{
+  "name": "grocer",
+  "version": "1.0.0",
+  "description": "Grocer - a local grocery delivery web app connecting buyers with neighbourhood grocery sellers.",
+  "private": true,
+  "scripts": {
+    "install-all": "npm install && npm install --prefix backend && npm install --prefix frontend",
+    "dev": "concurrently \"npm run dev --prefix backend\" \"npm start --prefix frontend\"",
+    "start": "concurrently \"npm run start --prefix backend\" \"npm start --prefix frontend\"",
+    "test:backend": "npm test --prefix backend",
+    "build:frontend": "npm run build --prefix frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^7.0.0"
+  },
+  "author": "Grocer Team",
+  "license": "ISC"
+}
