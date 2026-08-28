@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { validateSignupForm } from '../utils/validators';
 
 const initialForm = {
   role: 'buyer',
@@ -12,11 +13,13 @@ const initialForm = {
 
 export default function Signup() {
   const [form, setForm] = useState(initialForm);
+  const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
   const handleRoleChange = (role) => {
@@ -25,9 +28,13 @@ export default function Signup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const validationErrors = validateSignupForm(form);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
     setSubmitting(true);
-    // Validation (Sub Task 1.2) and API submission (Sub Task 1.3) land in
-    // follow-up commits on this branch.
+    // API submission (Sub Task 1.3) lands in a follow-up commit on this branch.
     setSubmitting(false);
   };
 
@@ -57,16 +64,31 @@ export default function Signup() {
           </button>
         </div>
 
-        <Field label="Full name *" name="name" value={form.name} onChange={handleChange} />
-        <Field label="Email *" name="email" type="email" value={form.email} onChange={handleChange} />
+        <Field label="Full name *" name="name" value={form.name} onChange={handleChange} error={errors.name} />
+        <Field
+          label="Email *"
+          name="email"
+          type="email"
+          value={form.email}
+          onChange={handleChange}
+          error={errors.email}
+        />
         <Field
           label={form.role === 'seller' ? 'Store address *' : 'Delivery address *'}
           name="address"
           value={form.address}
           onChange={handleChange}
           placeholder="Ex. 123 St 4066"
+          error={errors.address}
         />
-        <Field label="Date of birth *" name="dob" type="date" value={form.dob} onChange={handleChange} />
+        <Field
+          label="Date of birth *"
+          name="dob"
+          type="date"
+          value={form.dob}
+          onChange={handleChange}
+          error={errors.dob}
+        />
         <Field
           label="Password *"
           name="password"
@@ -74,6 +96,7 @@ export default function Signup() {
           value={form.password}
           onChange={handleChange}
           placeholder="Minimum 8 characters"
+          error={errors.password}
         />
         <Field
           label="Confirm password *"
@@ -82,6 +105,7 @@ export default function Signup() {
           value={form.confirmPassword}
           onChange={handleChange}
           placeholder="Re-enter your password"
+          error={errors.confirmPassword}
         />
 
         <button
@@ -96,7 +120,7 @@ export default function Signup() {
   );
 }
 
-function Field({ label, name, type = 'text', value, onChange, placeholder }) {
+function Field({ label, name, type = 'text', value, onChange, placeholder, error }) {
   return (
     <div className="mb-4">
       <label htmlFor={name} className="block text-sm font-medium mb-1">
@@ -109,8 +133,10 @@ function Field({ label, name, type = 'text', value, onChange, placeholder }) {
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className="w-full border border-gray-300 rounded-lg px-3 py-2"
+        aria-invalid={Boolean(error)}
+        className={`w-full border rounded-lg px-3 py-2 ${error ? 'border-red-500' : 'border-gray-300'}`}
       />
+      {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
     </div>
   );
 }
