@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { validateSignupForm } from '../utils/validators';
+import { signup } from '../services/authService';
 
 const initialForm = {
   role: 'buyer',
@@ -34,8 +35,11 @@ export default function Signup() {
       return;
     }
     setSubmitting(true);
-    // API submission (Sub Task 1.3) lands in a follow-up commit on this branch.
-    setSubmitting(false);
+    try {
+      await signup(form);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
