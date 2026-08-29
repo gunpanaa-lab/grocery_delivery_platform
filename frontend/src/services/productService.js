@@ -28,3 +28,12 @@ export async function setProductStock(id, inStock) {
   const { data } = await api.patch(`/products/${id}/stock`, { inStock });
   return data;
 }
+
+// Buyer endpoint (GROC-39) — public storefront browsing/search.
+export async function browseProducts({ search = '', category = '' } = {}) {
+  const params = {};
+  if (search) params.search = search;
+  if (category) params.category = category;
+  const { data } = await api.get('/products', { params });
+  return data;
+}

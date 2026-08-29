@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const Product = require('../models/Product');
 const {
   listMyProducts,
+  browseProducts,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -17,6 +18,44 @@ const { expect } = chai;
 describe('productController (GROC-21 seller catalog)', () => {
   afterEach(() => {
     sinon.restore();
+  });
+
+  describe('browseProducts', () => {
+    it('only queries in-stock items when no filters are given', async () => {
+      const sortStub = sinon.stub().resolves([]);
+      const findStub = sinon.stub(Product, 'find').returns({ sort: sortStub });
+
+      const req = { query: {} };
+      const res = { json: sinon.spy(), status: sinon.stub().returnsThis() };
+
+      await browseProducts(req, res);
+
+      expect(findStub.calledOnceWith({ inStock: true })).to.be.true;
+    });
+
+    it('adds a category filter when provided', async () => {
+      const sortStub = sinon.stub().resolves([]);
+      const findStub = sinon.stub(Product, 'find').returns({ sort: sortStub });
+
+      const req = { query: { category: 'produce' } };
+      const res = { json: sinon.spy(), status: sinon.stub().returnsThis() };
+
+      await browseProducts(req, res);
+
+      expect(findStub.calledOnceWith({ inStock: true, category: 'produce' })).to.be.true;
+    });
+
+    it('adds a text search filter when a search term is provided', async () => {
+      const sortStub = sinon.stub().resolves([]);
+      const findStub = sinon.stub(Product, 'find').returns({ sort: sortStub });
+
+      const req = { query: { search: 'apple' } };
+      const res = { json: sinon.spy(), status: sinon.stub().returnsThis() };
+
+      await browseProducts(req, res);
+
+      expect(findStub.calledOnceWith({ inStock: true, $text: { $search: 'apple' } })).to.be.true;
+    });
   });
 
   describe('listMyProducts', () => {

@@ -4,10 +4,11 @@ import Signup from './pages/Signup';
 import Login from './pages/Login';
 import ProductForm from './pages/seller/ProductForm';
 import ShopSeller from './pages/seller/ShopSeller';
+import ShopBuyer from './pages/buyer/ShopBuyer';
 
 // Feature routes are added incrementally as each epic lands:
-// Shop-Buyer/Cart/Checkout (Epic 3), seller order queue (Epic 4),
-// order tracking (Epic 5).
+// Cart/Checkout (Epic 3), seller order queue (Epic 4), order tracking
+// (Epic 5).
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/shop" element={<ShopBuyer />} />
         <Route path="/seller" element={<ShopSeller />} />
         <Route path="/seller/products/new" element={<ProductForm />} />
         <Route path="/seller/products/:id/edit" element={<ProductForm />} />
