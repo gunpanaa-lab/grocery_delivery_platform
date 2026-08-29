@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { validateLoginForm } from '../utils/validators';
+import { login } from '../services/authService';
 
 const initialForm = {
   email: '',
@@ -12,6 +13,7 @@ const initialForm = {
 export default function Login() {
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -19,12 +21,18 @@ export default function Login() {
     setErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validateLoginForm(form);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
+    }
+    setSubmitting(true);
+    try {
+      await login(form);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -52,9 +60,10 @@ export default function Login() {
 
         <button
           type="submit"
-          className="w-full bg-brand-600 hover:bg-brand-700 text-white font-medium py-3 rounded-lg mt-2"
+          disabled={submitting}
+          className="w-full bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white font-medium py-3 rounded-lg mt-2"
         >
-          Log in
+          {submitting ? 'Logging in…' : 'Log in'}
         </button>
       </form>
 
