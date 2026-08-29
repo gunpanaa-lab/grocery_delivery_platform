@@ -88,4 +88,23 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
-module.exports = { placeOrder, listSellerOrders, updateOrderStatus, toPublicOrder };
+// Sub Task 10.1 — fetch a single order for the buyer order-tracking
+// screen (GROC-86). Scoped to req.user.id so a buyer can only track
+// their own orders.
+const getOrderById = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+    if (String(order.buyer) !== String(req.user.id)) {
+      return res.status(403).json({ message: 'You can only view your own orders' });
+    }
+
+    return res.json(toPublicOrder(order));
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { placeOrder, listSellerOrders, updateOrderStatus, getOrderById, toPublicOrder };
