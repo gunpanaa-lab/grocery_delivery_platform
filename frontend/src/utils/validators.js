@@ -59,3 +59,21 @@ export function validateLoginForm(form) {
   }
   return errors;
 }
+
+/**
+ * Validates the seller Add/Edit Item form (GROC-21).
+ */
+export function validateProductForm(form) {
+  const errors = {};
+
+  if (!form.name || !form.name.trim()) {
+    errors.name = 'Item name is required.';
+  }
+
+  const price = Number(form.price);
+  if (form.price === '' || form.price === null || form.price === undefined || Number.isNaN(price) || price <= 0) {
+    errors.price = 'Enter a price greater than $0.';
+  }
+
+  return errors;
+}

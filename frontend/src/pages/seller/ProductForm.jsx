@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { CATEGORIES } from '../../services/productService';
+import { validateProductForm } from '../../utils/validators';
 
 const emptyForm = {
   name: '',
@@ -29,6 +30,11 @@ export default function ProductForm({ initialProduct }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const validationErrors = validateProductForm(form);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
   };
 
   return (
