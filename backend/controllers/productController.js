@@ -96,6 +96,27 @@ const deleteProduct = async (req, res) => {
   }
 };
 
+// Sub Task 5.5 — public storefront listing for buyers: only in-stock
+// items, optionally filtered by category and/or a text search across
+// name/description (backed by the text index on the Product model).
+const browseProducts = async (req, res) => {
+  const { search, category } = req.query;
+  const filter = { inStock: true };
+  if (category) {
+    filter.category = category;
+  }
+  if (search) {
+    filter.$text = { $search: search };
+  }
+
+  try {
+    const products = await Product.find(filter).sort({ createdAt: -1 });
+    return res.json(products.map(toPublicProduct));
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 // Sub Task 4.3 — application logic for the in-stock/out-of-stock toggle.
 const setProductStock = async (req, res) => {
   const { inStock } = req.body;
@@ -123,6 +144,7 @@ const setProductStock = async (req, res) => {
 
 module.exports = {
   listMyProducts,
+  browseProducts,
   createProduct,
   updateProduct,
   deleteProduct,

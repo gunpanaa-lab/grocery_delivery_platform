@@ -2,6 +2,7 @@ const express = require('express');
 const { protect, requireRole } = require('../middleware/authMiddleware');
 const {
   listMyProducts,
+  browseProducts,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -10,9 +11,10 @@ const {
 
 const router = express.Router();
 
-// Seller-only catalog management (GROC-21, GROC-30). Buyer-facing
-// browse/search (GROC-39) is added as public routes on this same
-// router later.
+// Public buyer storefront (GROC-39) — no auth required.
+router.get('/', browseProducts);
+
+// Seller-only catalog management (GROC-21, GROC-30).
 router.get('/mine', protect, requireRole('seller'), listMyProducts);
 router.post('/', protect, requireRole('seller'), createProduct);
 router.put('/:id', protect, requireRole('seller'), updateProduct);
