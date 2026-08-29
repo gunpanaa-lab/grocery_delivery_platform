@@ -8,6 +8,8 @@
     "dev": "concurrently \"npm run dev --prefix backend\" \"npm start --prefix frontend\"",
     "start": "concurrently \"npm run start --prefix backend\" \"npm start --prefix frontend\"",
     "test:backend": "npm test --prefix backend",
+    "test:frontend": "npm test --prefix frontend -- --watchAll=false",
+    "test": "npm run test:backend && npm run test:frontend",
     "build:frontend": "npm run build --prefix frontend"
   },
   "devDependencies": {
