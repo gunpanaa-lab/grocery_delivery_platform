@@ -30,4 +30,21 @@ function validateSignupPayload(body) {
   return errors;
 }
 
-module.exports = { validateSignupPayload, EMAIL_RE };
+/**
+ * Server-side mirror of the Login (GROC-11) validation rules.
+ */
+function validateLoginPayload(body) {
+  const errors = {};
+  const { email, password } = body || {};
+
+  if (!email || !EMAIL_RE.test(String(email).trim())) {
+    errors.email = 'A valid email is required.';
+  }
+  if (!password) {
+    errors.password = 'Password is required.';
+  }
+
+  return errors;
+}
+
+module.exports = { validateSignupPayload, validateLoginPayload, EMAIL_RE };
