@@ -96,4 +96,36 @@ const deleteProduct = async (req, res) => {
   }
 };
 
-module.exports = { listMyProducts, createProduct, updateProduct, deleteProduct, toPublicProduct };
+// Sub Task 4.3 — application logic for the in-stock/out-of-stock toggle.
+const setProductStock = async (req, res) => {
+  const { inStock } = req.body;
+  if (typeof inStock !== 'boolean') {
+    return res.status(400).json({ message: 'inStock must be true or false' });
+  }
+
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+    if (String(product.seller) !== String(req.user.id)) {
+      return res.status(403).json({ message: 'You can only update your own items' });
+    }
+
+    product.inStock = inStock;
+    await product.save();
+
+    return res.json(toPublicProduct(product));
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = {
+  listMyProducts,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  setProductStock,
+  toPublicProduct,
+};
