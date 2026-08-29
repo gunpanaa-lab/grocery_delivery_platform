@@ -14,8 +14,8 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', service: 'grocer-backend' });
 });
 
+app.use('/api/auth', require('./routes/authRoutes'));
 // Feature routes are mounted incrementally as each epic lands:
-// app.use('/api/auth', require('./routes/authRoutes'));
 // app.use('/api/products', require('./routes/productRoutes'));
 // app.use('/api/orders', require('./routes/orderRoutes'));
 
