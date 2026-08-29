@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { validateSignupForm } from '../utils/validators';
 import { signup } from '../services/authService';
 
@@ -13,6 +14,7 @@ const initialForm = {
 };
 
 export default function Signup() {
+  const navigate = useNavigate();
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState('');
@@ -42,6 +44,11 @@ export default function Signup() {
     try {
       await signup(form);
       setSuccess(true);
+      // Sub Task 1.6 — give the success banner a moment to render, then
+      // send the new user to the login page to sign in with their account.
+      setTimeout(() => {
+        navigate('/login', { state: { justSignedUp: true } });
+      }, 1200);
     } catch (err) {
       const data = err?.response?.data;
       if (data?.errors) {
