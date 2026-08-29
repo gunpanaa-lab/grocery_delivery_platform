@@ -26,3 +26,9 @@ export async function updateOrderStatus(id, status) {
   const { data } = await api.patch(`/orders/${id}/status`, { status });
   return data;
 }
+
+// Buyer order progress tracker (GROC-86).
+export async function getOrder(id) {
+  const { data } = await api.get(`/orders/${id}`);
+  return data;
+}

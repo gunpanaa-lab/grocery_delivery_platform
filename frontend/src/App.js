@@ -8,9 +8,7 @@ import ShopBuyer from './pages/buyer/ShopBuyer';
 import Cart from './pages/buyer/Cart';
 import Checkout from './pages/buyer/Checkout';
 import OrderBoard from './pages/seller/OrderBoard';
-
-// Feature routes are added incrementally as each epic lands:
-// Order tracking (Epic 5).
+import OrderTracking from './pages/buyer/OrderTracking';
 
 function App() {
   return (
@@ -22,6 +20,7 @@ function App() {
         <Route path="/shop" element={<ShopBuyer />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />} />
+        <Route path="/orders/:id" element={<OrderTracking />} />
         <Route path="/seller" element={<ShopSeller />} />
         <Route path="/seller/orders" element={<OrderBoard />} />
         <Route path="/seller/products/new" element={<ProductForm />} />
