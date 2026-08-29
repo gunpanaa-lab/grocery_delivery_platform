@@ -14,3 +14,9 @@ export async function placeOrder({ items, deliveryAddress }) {
   });
   return data;
 }
+
+// Seller live order queue (GROC-67).
+export async function listSellerOrders() {
+  const { data } = await api.get('/orders/mine');
+  return data;
+}

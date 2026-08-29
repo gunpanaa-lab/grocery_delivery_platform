@@ -41,4 +41,15 @@ const placeOrder = async (req, res) => {
   }
 };
 
-module.exports = { placeOrder, toPublicOrder };
+// Sub Task 8.1 — live order queue for sellers: every order placed
+// against this seller, most recent first.
+const listSellerOrders = async (req, res) => {
+  try {
+    const orders = await Order.find({ seller: req.user.id }).sort({ createdAt: -1 });
+    return res.json(orders.map(toPublicOrder));
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { placeOrder, listSellerOrders, toPublicOrder };

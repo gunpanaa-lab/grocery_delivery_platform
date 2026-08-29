@@ -51,12 +51,17 @@ export default function ShopSeller() {
     <div className="max-w-2xl mx-auto py-10 px-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold">My shop</h1>
-        <Link
-          to="/seller/products/new"
-          className="bg-brand-600 hover:bg-brand-700 text-white font-medium py-2 px-4 rounded-lg"
-        >
-          + Add item
-        </Link>
+        <div className="flex gap-2">
+          <Link to="/seller/orders" className="border border-gray-300 font-medium py-2 px-4 rounded-lg">
+            Order queue
+          </Link>
+          <Link
+            to="/seller/products/new"
+            className="bg-brand-600 hover:bg-brand-700 text-white font-medium py-2 px-4 rounded-lg"
+          >
+            + Add item
+          </Link>
+        </div>
       </div>
 
       {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
