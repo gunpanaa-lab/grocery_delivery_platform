@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { validateLoginForm } from '../utils/validators';
 import { login } from '../services/authService';
+import { setStoredUser } from '../utils/session';
 
 const initialForm = {
   email: '',
@@ -11,18 +12,22 @@ const initialForm = {
 // Sub Task 2.1 — login form component matching the Figma Login screen
 // (email, password, primary "Log in" action, link back to Signup).
 export default function Login() {
+  const location = useLocation();
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
+  const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
     setErrors((prev) => ({ ...prev, [name]: undefined }));
+    setFormError('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setFormError('');
     const validationErrors = validateLoginForm(form);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -30,7 +35,11 @@ export default function Login() {
     }
     setSubmitting(true);
     try {
-      await login(form);
+      const user = await login(form);
+      setStoredUser(user);
+    } catch (err) {
+      const data = err?.response?.data;
+      setFormError(data?.message || 'Invalid email or password. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -39,6 +48,18 @@ export default function Login() {
   return (
     <div className="max-w-md mx-auto py-10 px-6">
       <h1 className="text-2xl font-semibold text-center mb-6">Log in to grocer.</h1>
+
+      {location.state?.justSignedUp && (
+        <div className="mb-4 rounded-lg border border-green-300 bg-green-50 text-green-700 text-sm px-4 py-3">
+          Account created! Log in with your new account.
+        </div>
+      )}
+
+      {formError && (
+        <div className="mb-4 rounded-lg border border-red-300 bg-red-50 text-red-700 text-sm px-4 py-3">
+          {formError}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} noValidate>
         <Field
