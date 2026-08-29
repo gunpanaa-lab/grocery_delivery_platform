@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { validateLoginForm } from '../utils/validators';
 
 const initialForm = {
   email: '',
@@ -20,6 +21,11 @@ export default function Login() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const validationErrors = validateLoginForm(form);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
   };
 
   return (
