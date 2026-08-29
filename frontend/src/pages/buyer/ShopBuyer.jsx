@@ -9,6 +9,7 @@ export default function ShopBuyer() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [category, setCategory] = useState('');
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     setLoading(false);
@@ -17,6 +18,15 @@ export default function ShopBuyer() {
   return (
     <div className="max-w-4xl mx-auto py-10 px-6">
       <h1 className="text-2xl font-semibold mb-6">Shop groceries</h1>
+
+      <input
+        type="search"
+        aria-label="Search products"
+        placeholder="Search for groceries…"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4"
+      />
 
       <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
         <CategoryChip label="All" active={category === ''} onClick={() => setCategory('')} />
