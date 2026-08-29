@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { CATEGORIES, createProduct, updateProduct } from '../../services/productService';
 import { validateProductForm } from '../../utils/validators';
 
@@ -14,10 +14,14 @@ const emptyForm = {
 // Sub Task 3.2 — seller "add/edit item" form component, matching the
 // Figma Edit Item-Seller screen. Reused for both creating a new
 // product and editing an existing one (id present via the route).
-export default function ProductForm({ initialProduct }) {
+export default function ProductForm() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const location = useLocation();
   const isEditing = Boolean(id);
+  // The seller's shop list (GROC-21.6) already has the full product in
+  // memory, so it's passed via router state to avoid a redundant fetch.
+  const initialProduct = location.state?.product;
 
   const [form, setForm] = useState(() => (initialProduct ? toFormValues(initialProduct) : emptyForm));
   const [errors, setErrors] = useState({});
