@@ -2,7 +2,12 @@ const chai = require('chai');
 const sinon = require('sinon');
 const mongoose = require('mongoose');
 const Order = require('../models/Order');
-const { placeOrder, listSellerOrders, updateOrderStatus } = require('../controllers/orderController');
+const {
+  placeOrder,
+  listSellerOrders,
+  updateOrderStatus,
+  getOrderById,
+} = require('../controllers/orderController');
 
 const { expect } = chai;
 
@@ -149,5 +154,56 @@ describe('updateOrderStatus (GROC-76 status update controls)', () => {
     expect(order.status).to.equal('preparing');
     expect(order.save.calledOnce).to.be.true;
     expect(res.status.called).to.be.false;
+  });
+});
+
+describe('getOrderById (GROC-86 order tracking)', () => {
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  it('returns 404 when the order does not exist', async () => {
+    sinon.stub(Order, 'findById').resolves(null);
+    const req = { user: { id: new mongoose.Types.ObjectId() }, params: { id: new mongoose.Types.ObjectId() } };
+    const res = { status: sinon.stub().returnsThis(), json: sinon.spy() };
+
+    await getOrderById(req, res);
+
+    expect(res.status.calledWith(404)).to.be.true;
+  });
+
+  it('returns 403 when the order belongs to a different buyer', async () => {
+    const order = { buyer: new mongoose.Types.ObjectId() };
+    sinon.stub(Order, 'findById').resolves(order);
+    const req = { user: { id: new mongoose.Types.ObjectId() }, params: { id: new mongoose.Types.ObjectId() } };
+    const res = { status: sinon.stub().returnsThis(), json: sinon.spy() };
+
+    await getOrderById(req, res);
+
+    expect(res.status.calledWith(403)).to.be.true;
+  });
+
+  it('returns the order when the requester is the owning buyer', async () => {
+    const buyerId = new mongoose.Types.ObjectId();
+    const order = { _id: new mongoose.Types.ObjectId(), buyer: buyerId, items: [], total: 5, status: 'placed' };
+    sinon.stub(Order, 'findById').resolves(order);
+    const req = { user: { id: buyerId }, params: { id: order._id } };
+    const res = { status: sinon.stub().returnsThis(), json: sinon.spy() };
+
+    await getOrderById(req, res);
+
+    expect(res.status.called).to.be.false;
+    expect(res.json.calledOnce).to.be.true;
+    expect(res.json.firstCall.args[0]).to.include({ id: order._id, status: 'placed' });
+  });
+
+  it('returns 500 when the database throws', async () => {
+    sinon.stub(Order, 'findById').throws(new Error('DB Error'));
+    const req = { user: { id: new mongoose.Types.ObjectId() }, params: { id: new mongoose.Types.ObjectId() } };
+    const res = { status: sinon.stub().returnsThis(), json: sinon.spy() };
+
+    await getOrderById(req, res);
+
+    expect(res.status.calledWith(500)).to.be.true;
   });
 });
