@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { getOrder } from '../../services/orderService';
 
 const STEPS = [
   { key: 'placed', label: 'Order placed' },
@@ -19,7 +20,21 @@ export default function OrderTracking() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    setLoading(false);
+    let cancelled = false;
+    setLoading(true);
+    getOrder(id)
+      .then((data) => {
+        if (!cancelled) setOrder(data);
+      })
+      .catch(() => {
+        if (!cancelled) setError('Could not load this order. Please try again.');
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
 
   if (loading) {
