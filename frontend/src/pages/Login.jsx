@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { validateLoginForm } from '../utils/validators';
 import { login } from '../services/authService';
 import { setStoredUser } from '../utils/session';
@@ -13,6 +13,7 @@ const initialForm = {
 // (email, password, primary "Log in" action, link back to Signup).
 export default function Login() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState('');
@@ -37,6 +38,9 @@ export default function Login() {
     try {
       const user = await login(form);
       setStoredUser(user);
+      // Sub Task 2.6 — role-based redirect: buyers land on the storefront,
+      // sellers land on their own shop/dashboard.
+      navigate(user.role === 'seller' ? '/seller' : '/shop', { replace: true });
     } catch (err) {
       const data = err?.response?.data;
       setFormError(data?.message || 'Invalid email or password. Please try again.');
