@@ -20,3 +20,9 @@ export async function listSellerOrders() {
   const { data } = await api.get('/orders/mine');
   return data;
 }
+
+// Seller order status update controls (GROC-76).
+export async function updateOrderStatus(id, status) {
+  const { data } = await api.patch(`/orders/${id}/status`, { status });
+  return data;
+}

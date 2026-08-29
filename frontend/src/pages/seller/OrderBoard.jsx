@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { listSellerOrders } from '../../services/orderService';
+import { listSellerOrders, updateOrderStatus } from '../../services/orderService';
 
 const STATUS_LABELS = {
   placed: 'Placed',
@@ -43,6 +43,17 @@ export default function OrderBoard() {
     };
   }, []);
 
+  const handleAdvanceStatus = async (order) => {
+    const nextStatus = NEXT_STATUS[order.status];
+    if (!nextStatus) return;
+    try {
+      const updated = await updateOrderStatus(order.id, nextStatus);
+      setOrders((prev) => prev.map((o) => (o.id === order.id ? updated : o)));
+    } catch {
+      setError('Could not update this order. Please try again.');
+    }
+  };
+
   return (
     <div className="max-w-2xl mx-auto py-10 px-6">
       <h1 className="text-2xl font-semibold mb-6">Order queue</h1>
@@ -56,7 +67,7 @@ export default function OrderBoard() {
       ) : (
         <ul className="space-y-4">
           {orders.map((order) => (
-            <OrderCard key={order.id} order={order} />
+            <OrderCard key={order.id} order={order} onAdvanceStatus={handleAdvanceStatus} />
           ))}
         </ul>
       )}
@@ -64,7 +75,7 @@ export default function OrderBoard() {
   );
 }
 
-function OrderCard({ order }) {
+function OrderCard({ order, onAdvanceStatus }) {
   return (
     <li className="border border-gray-200 rounded-lg p-4">
       <div className="flex items-center justify-between mb-2">
@@ -81,7 +92,11 @@ function OrderCard({ order }) {
       </ul>
       <p className="text-sm font-medium mb-3">Total: ${Number(order.total).toFixed(2)}</p>
       {NEXT_STATUS[order.status] && (
-        <button type="button" onClick={() => {}} className="text-sm border border-gray-300 rounded-lg px-3 py-1.5">
+        <button
+          type="button"
+          onClick={() => onAdvanceStatus(order)}
+          className="text-sm border border-gray-300 rounded-lg px-3 py-1.5"
+        >
           Mark as {STATUS_LABELS[NEXT_STATUS[order.status]].toLowerCase()}
         </button>
       )}
