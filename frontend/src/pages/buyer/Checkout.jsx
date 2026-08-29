@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getCart, getCartTotal } from '../../utils/cart';
+import { placeOrder } from '../../services/orderService';
 
 // Sub Task 7.2 — Checkout page matching the Figma Checkout screen:
 // order summary, delivery address, and pay-on-delivery as the only
@@ -10,9 +11,25 @@ export default function Checkout() {
   const [items] = useState(() => getCart());
   const [address, setAddress] = useState('');
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    if (!address.trim()) {
+      setError('A delivery address is required.');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await placeOrder({ items, deliveryAddress: address.trim() });
+    } catch (err) {
+      const data = err?.response?.data;
+      setError(data?.message || 'Something went wrong placing your order. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (items.length === 0) {
@@ -79,9 +96,10 @@ export default function Checkout() {
 
         <button
           type="submit"
-          className="w-full bg-brand-600 hover:bg-brand-700 text-white font-medium py-3 rounded-lg"
+          disabled={submitting}
+          className="w-full bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white font-medium py-3 rounded-lg"
         >
-          Place order
+          {submitting ? 'Placing order…' : 'Place order'}
         </button>
       </form>
     </div>
