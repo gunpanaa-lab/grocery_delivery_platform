@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { CATEGORIES } from '../../services/productService';
+import { CATEGORIES, browseProducts } from '../../services/productService';
 
 // Sub Task 5.1 — Shop-Buyer product grid component. Category filter
 // (5.2), search (5.3), and the live API connection (5.4) are added
@@ -12,8 +12,27 @@ export default function ShopBuyer() {
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    setLoading(false);
-  }, []);
+    let cancelled = false;
+    setLoading(true);
+    // Debounce so every keystroke in the search box doesn't fire a request.
+    const handle = setTimeout(() => {
+      browseProducts({ search, category })
+        .then((data) => {
+          if (!cancelled) setProducts(data);
+        })
+        .catch(() => {
+          if (!cancelled) setError('Could not load products. Please try again.');
+        })
+        .finally(() => {
+          if (!cancelled) setLoading(false);
+        });
+    }, 300);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(handle);
+    };
+  }, [search, category]);
 
   return (
     <div className="max-w-4xl mx-auto py-10 px-6">
