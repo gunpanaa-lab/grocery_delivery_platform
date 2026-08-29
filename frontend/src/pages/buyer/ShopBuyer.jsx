@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { CATEGORIES } from '../../services/productService';
 
 // Sub Task 5.1 — Shop-Buyer product grid component. Category filter
 // (5.2), search (5.3), and the live API connection (5.4) are added
@@ -7,6 +8,7 @@ export default function ShopBuyer() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [category, setCategory] = useState('');
 
   useEffect(() => {
     setLoading(false);
@@ -15,6 +17,18 @@ export default function ShopBuyer() {
   return (
     <div className="max-w-4xl mx-auto py-10 px-6">
       <h1 className="text-2xl font-semibold mb-6">Shop groceries</h1>
+
+      <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
+        <CategoryChip label="All" active={category === ''} onClick={() => setCategory('')} />
+        {CATEGORIES.map((c) => (
+          <CategoryChip
+            key={c}
+            label={c[0].toUpperCase() + c.slice(1)}
+            active={category === c}
+            onClick={() => setCategory(c)}
+          />
+        ))}
+      </div>
 
       {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
 
@@ -30,6 +44,20 @@ export default function ShopBuyer() {
         </div>
       )}
     </div>
+  );
+}
+
+function CategoryChip({ label, active, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`whitespace-nowrap text-sm rounded-full px-4 py-1.5 border ${
+        active ? 'bg-brand-600 border-brand-600 text-white' : 'border-gray-300 text-gray-700'
+      }`}
+    >
+      {label}
+    </button>
   );
 }
 
