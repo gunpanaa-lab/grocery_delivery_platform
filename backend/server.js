@@ -16,8 +16,7 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/products', require('./routes/productRoutes'));
-// Feature routes are mounted incrementally as each epic lands:
-// app.use('/api/orders', require('./routes/orderRoutes'));
+app.use('/api/orders', require('./routes/orderRoutes'));
 
 // Export the app for supertest/chai-http based testing without binding a port.
 if (require.main === module) {

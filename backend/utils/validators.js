@@ -65,4 +65,39 @@ function validateProductPayload(body) {
   return errors;
 }
 
-module.exports = { validateSignupPayload, validateLoginPayload, validateProductPayload, EMAIL_RE };
+/**
+ * Server-side validation for placing an order (GROC-58).
+ */
+function validateOrderPayload(body) {
+  const errors = {};
+  const { items, seller, deliveryAddress } = body || {};
+
+  if (!Array.isArray(items) || items.length === 0) {
+    errors.items = 'An order must contain at least one item.';
+  } else {
+    const invalid = items.some(
+      (item) => !item.product || !item.name || typeof item.price !== 'number' || !(item.quantity > 0)
+    );
+    if (invalid) {
+      errors.items = 'Each item needs a product, name, price, and a quantity greater than 0.';
+    }
+  }
+
+  if (!seller) {
+    errors.seller = 'An order must be associated with a seller.';
+  }
+
+  if (!deliveryAddress || !String(deliveryAddress).trim()) {
+    errors.deliveryAddress = 'A delivery address is required.';
+  }
+
+  return errors;
+}
+
+module.exports = {
+  validateSignupPayload,
+  validateLoginPayload,
+  validateProductPayload,
+  validateOrderPayload,
+  EMAIL_RE,
+};
