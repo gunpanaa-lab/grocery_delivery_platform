@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { CATEGORIES } from '../../services/productService';
+import { CATEGORIES, createProduct, updateProduct } from '../../services/productService';
 import { validateProductForm } from '../../utils/validators';
 
 const emptyForm = {
@@ -21,19 +21,42 @@ export default function ProductForm({ initialProduct }) {
 
   const [form, setForm] = useState(() => (initialProduct ? toFormValues(initialProduct) : emptyForm));
   const [errors, setErrors] = useState({});
+  const [formError, setFormError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
     setErrors((prev) => ({ ...prev, [name]: undefined }));
+    setFormError('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setFormError('');
     const validationErrors = validateProductForm(form);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
+    }
+
+    const payload = { ...form, price: Number(form.price) };
+    setSubmitting(true);
+    try {
+      if (isEditing) {
+        await updateProduct(id, payload);
+      } else {
+        await createProduct(payload);
+      }
+      navigate('/seller');
+    } catch (err) {
+      const data = err?.response?.data;
+      if (data?.errors) {
+        setErrors(data.errors);
+      }
+      setFormError(data?.message || 'Something went wrong saving this item. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -42,6 +65,12 @@ export default function ProductForm({ initialProduct }) {
       <h1 className="text-2xl font-semibold text-center mb-6">
         {isEditing ? 'Edit item' : 'Add a new item'}
       </h1>
+
+      {formError && (
+        <div className="mb-4 rounded-lg border border-red-300 bg-red-50 text-red-700 text-sm px-4 py-3">
+          {formError}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} noValidate>
         <Field label="Item name *" name="name" value={form.name} onChange={handleChange} error={errors.name} />
@@ -88,9 +117,10 @@ export default function ProductForm({ initialProduct }) {
 
         <button
           type="submit"
-          className="w-full bg-brand-600 hover:bg-brand-700 text-white font-medium py-3 rounded-lg mt-2"
+          disabled={submitting}
+          className="w-full bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white font-medium py-3 rounded-lg mt-2"
         >
-          {isEditing ? 'Save changes' : 'Add item'}
+          {submitting ? 'Saving…' : isEditing ? 'Save changes' : 'Add item'}
         </button>
         <button
           type="button"
