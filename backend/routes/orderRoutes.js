@@ -1,15 +1,15 @@
 const express = require('express');
 const { protect, requireRole } = require('../middleware/authMiddleware');
-const { placeOrder, listSellerOrders } = require('../controllers/orderController');
+const { placeOrder, listSellerOrders, updateOrderStatus } = require('../controllers/orderController');
 
 const router = express.Router();
 
 // Buyer-only (GROC-58).
 router.post('/', protect, requireRole('buyer'), placeOrder);
 
-// Seller-only live order queue (GROC-67). Status-update routes
-// (GROC-76) and the buyer order-tracking read route (Epic 5) are
-// added to this same router as those user stories land.
+// Seller-only (GROC-67, GROC-76). The buyer order-tracking read route
+// (Epic 5) is added to this same router as that epic lands.
 router.get('/mine', protect, requireRole('seller'), listSellerOrders);
+router.patch('/:id/status', protect, requireRole('seller'), updateOrderStatus);
 
 module.exports = router;
