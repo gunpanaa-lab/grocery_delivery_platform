@@ -47,4 +47,22 @@ function validateLoginPayload(body) {
   return errors;
 }
 
-module.exports = { validateSignupPayload, validateLoginPayload, EMAIL_RE };
+/**
+ * Server-side mirror of the seller Add/Edit Item form (GROC-21).
+ */
+function validateProductPayload(body) {
+  const errors = {};
+  const { name, price } = body || {};
+
+  if (!name || !String(name).trim()) {
+    errors.name = 'Item name is required.';
+  }
+  const numericPrice = Number(price);
+  if (price === undefined || price === null || price === '' || Number.isNaN(numericPrice) || numericPrice <= 0) {
+    errors.price = 'Price must be a number greater than 0.';
+  }
+
+  return errors;
+}
+
+module.exports = { validateSignupPayload, validateLoginPayload, validateProductPayload, EMAIL_RE };
