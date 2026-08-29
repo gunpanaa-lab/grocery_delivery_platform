@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { listMyProducts, deleteProduct } from '../../services/productService';
+import { listMyProducts, deleteProduct, setProductStock } from '../../services/productService';
 
 // Sub Task 3.6 — seller "Shop-Seller" screen: lists everything this
 // seller has listed, with Add / Edit / Delete actions.
@@ -27,6 +27,16 @@ export default function ShopSeller() {
       cancelled = true;
     };
   }, []);
+
+  const handleToggleStock = async (product) => {
+    const nextInStock = !product.inStock;
+    try {
+      const updated = await setProductStock(product.id, nextInStock);
+      setProducts((prev) => prev.map((p) => (p.id === product.id ? updated : p)));
+    } catch {
+      setError('Could not update stock status. Please try again.');
+    }
+  };
 
   const handleDelete = async (product) => {
     try {
@@ -66,6 +76,15 @@ export default function ShopSeller() {
                 </p>
               </div>
               <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleToggleStock(product)}
+                  className={`text-sm rounded-lg px-3 py-1.5 border ${
+                    product.inStock ? 'border-gray-300' : 'border-amber-300 text-amber-700 bg-amber-50'
+                  }`}
+                >
+                  {product.inStock ? 'Mark out of stock' : 'Mark in stock'}
+                </button>
                 <button
                   type="button"
                   onClick={() => navigate(`/seller/products/${product.id}/edit`, { state: { product } })}

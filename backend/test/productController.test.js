@@ -7,6 +7,7 @@ const {
   createProduct,
   updateProduct,
   deleteProduct,
+  setProductStock,
 } = require('../controllers/productController');
 
 const { expect } = chai;
@@ -157,6 +158,45 @@ describe('productController (GROC-21 seller catalog)', () => {
 
       expect(product.deleteOne.calledOnce).to.be.true;
       expect(res.json.calledWith({ message: 'Product deleted' })).to.be.true;
+    });
+  });
+
+  describe('setProductStock', () => {
+    it('returns 400 when inStock is not a boolean', async () => {
+      const req = { user: { id: new mongoose.Types.ObjectId() }, params: { id: new mongoose.Types.ObjectId() }, body: { inStock: 'yes' } };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.spy() };
+
+      await setProductStock(req, res);
+
+      expect(res.status.calledWith(400)).to.be.true;
+    });
+
+    it('returns 403 when the product belongs to a different seller', async () => {
+      const product = { seller: new mongoose.Types.ObjectId(), save: sinon.stub().resolvesThis() };
+      sinon.stub(Product, 'findById').resolves(product);
+
+      const req = { user: { id: new mongoose.Types.ObjectId() }, params: { id: new mongoose.Types.ObjectId() }, body: { inStock: false } };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.spy() };
+
+      await setProductStock(req, res);
+
+      expect(res.status.calledWith(403)).to.be.true;
+      expect(product.save.called).to.be.false;
+    });
+
+    it('updates inStock when the requester is the owning seller', async () => {
+      const sellerId = new mongoose.Types.ObjectId();
+      const product = { seller: sellerId, inStock: true, save: sinon.stub().resolvesThis() };
+      sinon.stub(Product, 'findById').resolves(product);
+
+      const req = { user: { id: sellerId }, params: { id: new mongoose.Types.ObjectId() }, body: { inStock: false } };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.spy() };
+
+      await setProductStock(req, res);
+
+      expect(product.inStock).to.equal(false);
+      expect(product.save.calledOnce).to.be.true;
+      expect(res.status.called).to.be.false;
     });
   });
 });
