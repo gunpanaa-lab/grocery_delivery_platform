@@ -2,13 +2,14 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import ShopSeller from './ShopSeller';
-import { listMyProducts, deleteProduct } from '../../services/productService';
+import { listMyProducts, deleteProduct, setProductStock } from '../../services/productService';
 
 // Sub Task 3.7 — frontend unit tests for the Shop-Seller listing page.
 jest.mock('../../services/productService', () => ({
   ...jest.requireActual('../../services/productService'),
   listMyProducts: jest.fn(),
   deleteProduct: jest.fn(),
+  setProductStock: jest.fn(),
 }));
 
 const mockNavigate = jest.fn();
@@ -46,7 +47,8 @@ describe('ShopSeller page (GROC-21)', () => {
 
     expect(await screen.findByText('Apples')).toBeInTheDocument();
     expect(screen.getByText('Milk')).toBeInTheDocument();
-    expect(screen.getByText(/out of stock/i)).toBeInTheDocument();
+    // Milk is out of stock, so its toggle offers to mark it back in stock.
+    expect(screen.getByRole('button', { name: /mark in stock/i })).toBeInTheDocument();
   });
 
   test('deletes a product when Delete is clicked', async () => {
@@ -60,5 +62,18 @@ describe('ShopSeller page (GROC-21)', () => {
 
     expect(deleteProduct).toHaveBeenCalledWith('p1');
     await screen.findByText(/haven't listed any items yet/i);
+  });
+
+  test('toggles stock status when the toggle button is clicked', async () => {
+    listMyProducts.mockResolvedValueOnce([{ id: 'p1', name: 'Apples', price: 2.5, inStock: true }]);
+    setProductStock.mockResolvedValueOnce({ id: 'p1', name: 'Apples', price: 2.5, inStock: false });
+    const user = userEvent.setup();
+    renderShopSeller();
+
+    await screen.findByText('Apples');
+    await user.click(screen.getByRole('button', { name: /mark out of stock/i }));
+
+    expect(setProductStock).toHaveBeenCalledWith('p1', false);
+    expect(await screen.findByRole('button', { name: /mark in stock/i })).toBeInTheDocument();
   });
 });
