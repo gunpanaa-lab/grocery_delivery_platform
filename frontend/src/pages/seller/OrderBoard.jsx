@@ -8,6 +8,14 @@ const STATUS_LABELS = {
   delivered: 'Delivered',
 };
 
+// Sub Task 9.1 — the fixed forward progression a seller advances an
+// order through (GROC-76). Delivered is the terminal state.
+const NEXT_STATUS = {
+  placed: 'preparing',
+  preparing: 'out_for_delivery',
+  out_for_delivery: 'delivered',
+};
+
 // Sub Task 8.2 — seller Order Management Board, matching the Figma
 // Order Management Board-Seller / -Empty screens. Status update
 // controls (GROC-76) and the live API connection (GROC-67.3) build on
@@ -71,7 +79,12 @@ function OrderCard({ order }) {
           </li>
         ))}
       </ul>
-      <p className="text-sm font-medium">Total: ${Number(order.total).toFixed(2)}</p>
+      <p className="text-sm font-medium mb-3">Total: ${Number(order.total).toFixed(2)}</p>
+      {NEXT_STATUS[order.status] && (
+        <button type="button" onClick={() => {}} className="text-sm border border-gray-300 rounded-lg px-3 py-1.5">
+          Mark as {STATUS_LABELS[NEXT_STATUS[order.status]].toLowerCase()}
+        </button>
+      )}
     </li>
   );
 }
