@@ -28,7 +28,16 @@ export function addToCart(product, quantity = 1) {
   if (existing) {
     existing.quantity += quantity;
   } else {
-    items.push({ productId: product.id, name: product.name, price: product.price, quantity });
+    items.push({
+      productId: product.id,
+      // Carried through to checkout (GROC-58): an order is scoped to a
+      // single seller, so the seller id travels with the line item
+      // rather than requiring a second lookup at checkout time.
+      seller: product.seller,
+      name: product.name,
+      price: product.price,
+      quantity,
+    });
   }
   return writeCart(items);
 }
