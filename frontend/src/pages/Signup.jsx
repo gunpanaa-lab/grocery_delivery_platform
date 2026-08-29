@@ -15,12 +15,15 @@ const initialForm = {
 export default function Signup() {
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
+  const [formError, setFormError] = useState('');
+  const [success, setSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
     setErrors((prev) => ({ ...prev, [name]: undefined }));
+    setFormError('');
   };
 
   const handleRoleChange = (role) => {
@@ -29,6 +32,7 @@ export default function Signup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setFormError('');
     const validationErrors = validateSignupForm(form);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -37,6 +41,13 @@ export default function Signup() {
     setSubmitting(true);
     try {
       await signup(form);
+      setSuccess(true);
+    } catch (err) {
+      const data = err?.response?.data;
+      if (data?.errors) {
+        setErrors(data.errors);
+      }
+      setFormError(data?.message || 'Something went wrong creating your account. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -45,6 +56,19 @@ export default function Signup() {
   return (
     <div className="max-w-md mx-auto py-10 px-6">
       <h1 className="text-2xl font-semibold text-center mb-6">Create your account</h1>
+
+      {formError && (
+        <div className="mb-4 rounded-lg border border-red-300 bg-red-50 text-red-700 text-sm px-4 py-3">
+          {formError}
+        </div>
+      )}
+
+      {success && (
+        <div className="mb-4 rounded-lg border border-green-300 bg-green-50 text-green-700 text-sm px-4 py-3">
+          Account created! You can now log in.
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} noValidate>
         <label className="block text-sm font-medium mb-2">I am a</label>
         <div className="flex gap-3 mb-4">
