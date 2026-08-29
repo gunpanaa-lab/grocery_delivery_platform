@@ -22,3 +22,9 @@ export async function deleteProduct(id) {
   const { data } = await api.delete(`/products/${id}`);
   return data;
 }
+
+// GROC-30 — inventory stock status toggle.
+export async function setProductStock(id, inStock) {
+  const { data } = await api.patch(`/products/${id}/stock`, { inStock });
+  return data;
+}
