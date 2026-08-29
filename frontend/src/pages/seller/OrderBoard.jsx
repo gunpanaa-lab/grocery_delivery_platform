@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { listSellerOrders } from '../../services/orderService';
 
 const STATUS_LABELS = {
   placed: 'Placed',
@@ -17,7 +18,21 @@ export default function OrderBoard() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    setLoading(false);
+    let cancelled = false;
+    setLoading(true);
+    listSellerOrders()
+      .then((data) => {
+        if (!cancelled) setOrders(data);
+      })
+      .catch(() => {
+        if (!cancelled) setError('Could not load your orders. Please try again.');
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
