@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getCart, getCartTotal } from '../../utils/cart';
+import { getCart, getCartTotal, clearCart } from '../../utils/cart';
 import { placeOrder } from '../../services/orderService';
 
 // Sub Task 7.2 — Checkout page matching the Figma Checkout screen:
@@ -23,7 +23,11 @@ export default function Checkout() {
 
     setSubmitting(true);
     try {
-      await placeOrder({ items, deliveryAddress: address.trim() });
+      const order = await placeOrder({ items, deliveryAddress: address.trim() });
+      // Sub Task 7.5 — success handling: the cart has been converted
+      // into an order, so clear it and send the buyer to track it.
+      clearCart();
+      navigate(`/orders/${order.id}`);
     } catch (err) {
       const data = err?.response?.data;
       setError(data?.message || 'Something went wrong placing your order. Please try again.');
