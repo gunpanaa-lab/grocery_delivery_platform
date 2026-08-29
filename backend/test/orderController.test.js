@@ -2,7 +2,7 @@ const chai = require('chai');
 const sinon = require('sinon');
 const mongoose = require('mongoose');
 const Order = require('../models/Order');
-const { placeOrder } = require('../controllers/orderController');
+const { placeOrder, listSellerOrders } = require('../controllers/orderController');
 
 const { expect } = chai;
 
@@ -63,5 +63,36 @@ describe('placeOrder (GROC-58 checkout)', () => {
 
     expect(res.status.calledWith(500)).to.be.true;
     expect(res.json.calledWithMatch({ message: 'DB Error' })).to.be.true;
+  });
+});
+
+describe('listSellerOrders (GROC-67 live order queue)', () => {
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  it("returns only the requesting seller's orders", async () => {
+    const sellerId = new mongoose.Types.ObjectId();
+    const orders = [{ _id: new mongoose.Types.ObjectId(), seller: sellerId, items: [], total: 5 }];
+    const sortStub = sinon.stub().resolves(orders);
+    const findStub = sinon.stub(Order, 'find').returns({ sort: sortStub });
+
+    const req = { user: { id: sellerId } };
+    const res = { json: sinon.spy(), status: sinon.stub().returnsThis() };
+
+    await listSellerOrders(req, res);
+
+    expect(findStub.calledOnceWith({ seller: sellerId })).to.be.true;
+    expect(res.json.calledOnce).to.be.true;
+  });
+
+  it('returns 500 when the database throws', async () => {
+    sinon.stub(Order, 'find').throws(new Error('DB Error'));
+    const req = { user: { id: new mongoose.Types.ObjectId() } };
+    const res = { json: sinon.spy(), status: sinon.stub().returnsThis() };
+
+    await listSellerOrders(req, res);
+
+    expect(res.status.calledWith(500)).to.be.true;
   });
 });
