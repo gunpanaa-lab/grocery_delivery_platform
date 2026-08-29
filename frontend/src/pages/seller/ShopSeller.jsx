@@ -68,6 +68,15 @@ export default function ShopSeller() {
               <div className="flex gap-2">
                 <button
                   type="button"
+                  onClick={() => {}}
+                  className={`text-sm rounded-lg px-3 py-1.5 border ${
+                    product.inStock ? 'border-gray-300' : 'border-amber-300 text-amber-700 bg-amber-50'
+                  }`}
+                >
+                  {product.inStock ? 'Mark out of stock' : 'Mark in stock'}
+                </button>
+                <button
+                  type="button"
                   onClick={() => navigate(`/seller/products/${product.id}/edit`, { state: { product } })}
                   className="text-sm border border-gray-300 rounded-lg px-3 py-1.5"
                 >
