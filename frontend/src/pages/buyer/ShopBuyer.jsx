@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { CATEGORIES, browseProducts } from '../../services/productService';
+import { addToCart } from '../../utils/cart';
 
 // Sub Task 5.1 — Shop-Buyer product grid component. Category filter
 // (5.2), search (5.3), and the live API connection (5.4) are added
@@ -10,6 +11,7 @@ export default function ShopBuyer() {
   const [error, setError] = useState('');
   const [category, setCategory] = useState('');
   const [search, setSearch] = useState('');
+  const [addedMessage, setAddedMessage] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -33,6 +35,12 @@ export default function ShopBuyer() {
       clearTimeout(handle);
     };
   }, [search, category]);
+
+  const handleAddToCart = (product) => {
+    addToCart(product);
+    setAddedMessage(`Added ${product.name} to your cart.`);
+    setTimeout(() => setAddedMessage(''), 1500);
+  };
 
   return (
     <div className="max-w-4xl mx-auto py-10 px-6">
@@ -60,6 +68,7 @@ export default function ShopBuyer() {
       </div>
 
       {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
+      {addedMessage && <p className="text-green-700 text-sm mb-4">{addedMessage}</p>}
 
       {loading ? (
         <p className="text-gray-500">Loading products…</p>
@@ -68,7 +77,7 @@ export default function ShopBuyer() {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} />
           ))}
         </div>
       )}
@@ -90,7 +99,7 @@ function CategoryChip({ label, active, onClick }) {
   );
 }
 
-function ProductCard({ product }) {
+function ProductCard({ product, onAddToCart }) {
   return (
     <div className="border border-gray-200 rounded-lg p-4">
       <div className="w-full aspect-square bg-gray-100 rounded-md mb-3 flex items-center justify-center text-3xl">
@@ -103,7 +112,14 @@ function ProductCard({ product }) {
         )}
       </div>
       <p className="font-medium">{product.name}</p>
-      <p className="text-sm text-gray-500">${Number(product.price).toFixed(2)}</p>
+      <p className="text-sm text-gray-500 mb-3">${Number(product.price).toFixed(2)}</p>
+      <button
+        type="button"
+        onClick={() => onAddToCart(product)}
+        className="w-full text-sm bg-brand-600 hover:bg-brand-700 text-white font-medium py-2 rounded-lg"
+      >
+        Add to cart
+      </button>
     </div>
   );
 }
