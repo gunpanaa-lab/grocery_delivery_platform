@@ -1,12 +1,11 @@
 import { Link } from 'react-router-dom';
+import CartIcon from '../components/icons/CartIcon';
 
 export default function Home() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center text-center px-6">
       <div className="w-24 h-24 rounded-full bg-brand-50 flex items-center justify-center mb-6">
-        <span className="text-4xl" role="img" aria-label="cart">
-          🛒
-        </span>
+        <CartIcon className="w-11 h-11 text-brand-600" />
       </div>
       <h1 className="text-3xl font-semibold mb-2">Welcome to grocer.</h1>
       <p className="text-gray-500 max-w-sm mb-8">
