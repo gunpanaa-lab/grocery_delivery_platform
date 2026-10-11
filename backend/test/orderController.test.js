@@ -2,6 +2,7 @@ const chai = require('chai');
 const sinon = require('sinon');
 const mongoose = require('mongoose');
 const Order = require('../models/Order');
+const orderRepository = require('../repositories/MongoOrderRepository');
 const {
   placeOrder,
   listSellerOrders,
