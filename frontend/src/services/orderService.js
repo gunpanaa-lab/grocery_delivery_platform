@@ -32,3 +32,10 @@ export async function getOrder(id) {
   const { data } = await api.get(`/orders/${id}`);
   return data;
 }
+
+
+// Buyer order cancellation (GDP-103, FR-13).
+export async function cancelOrder(id) {
+  const { data } = await api.patch(`/orders/${id}/cancel`);
+  return data;
+}
