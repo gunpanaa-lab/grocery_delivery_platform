@@ -7,6 +7,7 @@ const {
   listSellerOrders,
   updateOrderStatus,
   getOrderById,
+  listBuyerOrders,
 } = require('../controllers/orderController');
 
 const { expect } = chai;
@@ -203,6 +204,33 @@ describe('getOrderById (GROC-86 order tracking)', () => {
     const res = { status: sinon.stub().returnsThis(), json: sinon.spy() };
 
     await getOrderById(req, res);
+
+    expect(res.status.calledWith(500)).to.be.true;
+  });
+});
+
+describe('listBuyerOrders (buyer order history)', () => {
+  afterEach(() => { sinon.restore(); });
+
+  it("returns only the requesting buyer's orders, via the order repository", async () => {
+    const buyerId = new mongoose.Types.ObjectId();
+    const orders = [{ _id: new mongoose.Types.ObjectId(), buyer: buyerId, items: [], total: 5 }];
+    const findByBuyerStub = sinon.stub(orderRepository, 'findByBuyer').resolves(orders);
+    const req = { user: { id: buyerId } };
+    const res = { json: sinon.spy(), status: sinon.stub().returnsThis() };
+
+    await listBuyerOrders(req, res);
+
+    expect(findByBuyerStub.calledOnceWith(buyerId)).to.be.true;
+    expect(res.json.calledOnce).to.be.true;
+  });
+
+  it('returns 500 when the repository throws', async () => {
+    sinon.stub(orderRepository, 'findByBuyer').throws(new Error('DB Error'));
+    const req = { user: { id: new mongoose.Types.ObjectId() } };
+    const res = { json: sinon.spy(), status: sinon.stub().returnsThis() };
+
+    await listBuyerOrders(req, res);
 
     expect(res.status.calledWith(500)).to.be.true;
   });
