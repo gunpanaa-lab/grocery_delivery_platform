@@ -6,6 +6,7 @@ export default function Navbar() {
   const navigate = useNavigate();
   const user = getStoredUser();
   const isSeller = user?.role === 'seller';
+  const isBuyer = user?.role === 'buyer';
 
   const handleLogout = () => {
     clearStoredUser();
@@ -31,6 +32,11 @@ export default function Navbar() {
             <NavLink to={isSeller ? '/seller/orders' : '/cart'} className={linkClass}>
               Order
             </NavLink>
+            {isBuyer && (
+              <NavLink to="/orders/history" className={linkClass}>
+                History
+              </NavLink>
+            )}
           </div>
         </div>
 

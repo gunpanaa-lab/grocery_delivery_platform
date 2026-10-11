@@ -32,3 +32,10 @@ export async function getOrder(id) {
   const { data } = await api.get(`/orders/${id}`);
   return data;
 }
+
+// Buyer order history (new) — every order the signed-in buyer has
+// placed, most recent first.
+export async function getOrderHistory() {
+  const { data } = await api.get('/orders/history');
+  return data;
+}
