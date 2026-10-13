@@ -33,6 +33,12 @@ export async function getOrder(id) {
   return data;
 }
 
+
+// Buyer order cancellation (GDP-103, FR-13).
+export async function cancelOrder(id) {
+  const { data } = await api.patch(`/orders/${id}/cancel`);
+  return data;
+}
 // Buyer order history (new) — every order the signed-in buyer has
 // placed, most recent first.
 export async function getOrderHistory() {

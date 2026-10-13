@@ -5,6 +5,7 @@ const {
   listSellerOrders,
   updateOrderStatus,
   getOrderById,
+  cancelOrder,
 } = require('../controllers/orderController');
 
 const router = express.Router();
@@ -19,5 +20,8 @@ router.patch('/:id/status', protect, requireRole('seller'), updateOrderStatus);
 
 // Buyer-only order tracking (GROC-86).
 router.get('/:id', protect, requireRole('buyer'), getOrderById);
+
+// Buyer-only order cancellation (GDP-103, FR-13).
+router.patch('/:id/cancel', protect, requireRole('buyer'), cancelOrder);
 
 module.exports = router;

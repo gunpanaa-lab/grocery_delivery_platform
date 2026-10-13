@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { getOrder } from '../../services/orderService';
+import { getOrder, cancelOrder } from '../../services/orderService';
 
 const STEPS = [
   { key: 'placed', label: 'Order placed' },
@@ -18,6 +18,8 @@ export default function OrderTracking() {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -37,6 +39,21 @@ export default function OrderTracking() {
     };
   }, [id]);
 
+  // GDP-119 (FR-13) — the backend decides if the cancel is allowed.
+  // The page only shows the new status or the server's error message.
+  const handleCancel = async () => {
+    setCancelling(true);
+    setCancelError('');
+    try {
+      const updated = await cancelOrder(id);
+      setOrder(updated);
+    } catch (err) {
+      setCancelError(err.response?.data?.message || 'Could not cancel this order. Please try again.');
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   if (loading) {
     return <p className="text-gray-500 text-center py-16">Loading your order…</p>;
   }
@@ -50,28 +67,57 @@ export default function OrderTracking() {
   }
 
   const currentIndex = STEPS.findIndex((step) => step.key === order.status);
+  const isOrderCancelled = order.status === 'cancelled';
+  const canCancel = order.status === 'placed';
 
   return (
     <div className="max-w-md mx-auto py-10 px-6">
       <h1 className="text-2xl font-semibold text-center mb-2">
-        {order.status === 'delivered' ? 'Delivered!' : 'Tracking your order'}
+        {isOrderCancelled
+          ? 'Order cancelled'
+          : order.status === 'delivered'
+            ? 'Delivered!'
+            : 'Tracking your order'}
       </h1>
       <p className="text-gray-500 text-center mb-8">Order #{String(order.id).slice(-6)}</p>
 
-      <ol className="mb-8">
-        {STEPS.map((step, index) => (
-          <li key={step.key} className="flex items-center gap-3 mb-4 last:mb-0">
-            <span
-              className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
-                index <= currentIndex ? 'bg-brand-600 text-white' : 'bg-gray-200 text-gray-500'
-              }`}
-            >
-              {index <= currentIndex ? '✓' : index + 1}
-            </span>
-            <span className={index <= currentIndex ? 'font-medium' : 'text-gray-500'}>{step.label}</span>
-          </li>
-        ))}
-      </ol>
+      {isOrderCancelled ? (
+        <div className="flex justify-center mb-8">
+          <span className="inline-block bg-red-100 text-red-700 text-sm font-medium px-3 py-1 rounded-full">
+            Cancelled
+          </span>
+        </div>
+      ) : (
+        <ol className="mb-8">
+          {STEPS.map((step, index) => (
+            <li key={step.key} className="flex items-center gap-3 mb-4 last:mb-0">
+              <span
+                className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
+                  index <= currentIndex ? 'bg-brand-600 text-white' : 'bg-gray-200 text-gray-500'
+                }`}
+              >
+                {index <= currentIndex ? '✓' : index + 1}
+              </span>
+              <span className={index <= currentIndex ? 'font-medium' : 'text-gray-500'}>{step.label}</span>
+            </li>
+          ))}
+        </ol>
+      )}
+
+      {canCancel && (
+        <div className="mb-8 text-center">
+          <button
+            type="button"
+            onClick={handleCancel}
+            disabled={cancelling}
+            className="text-sm border border-red-300 text-red-700 rounded-lg px-4 py-2 disabled:opacity-50"
+          >
+            {cancelling ? 'Cancelling…' : 'Cancel order'}
+          </button>
+        </div>
+      )}
+
+      {cancelError && <p className="text-red-600 text-sm text-center mb-4">{cancelError}</p>}
 
       <div className="border-t border-gray-200 pt-4">
         <p className="text-sm text-gray-500 mb-1">Deliver to</p>

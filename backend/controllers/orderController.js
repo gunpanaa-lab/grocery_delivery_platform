@@ -1,5 +1,6 @@
 const Order = require('../models/Order');
 const { validateOrderPayload } = require('../utils/validators');
+const { getOrderState, OrderStateError } = require('../states/orderStates');
 const orderRepository = require('../repositories/MongoOrderRepository');
 
 // Sub Task 9.3 — the same fixed forward progression enforced on the
@@ -108,6 +109,31 @@ const getOrderById = async (req, res) => {
   }
 };
 
+// GDP-118 (FR-13) — buyer cancels their own order. The current state
+// object decides if cancellation is allowed (State pattern, GDP-117).
+const cancelOrder = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+    if (String(order.buyer) !== String(req.user.id)) {
+      return res.status(403).json({ message: 'You can only cancel your own orders' });
+    }
+
+    const state = getOrderState(order.status);
+    state.cancel(order);
+    await order.save();
+
+    return res.json(toPublicOrder(order));
+  } catch (error) {
+    if (error instanceof OrderStateError) {
+      return res.status(error.statusCode).json({ message: error.message });
+    }
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 const listBuyerOrders = async (req, res) => {
   try {
     const orders = await orderRepository.findByBuyer(req.user.id);
@@ -124,4 +150,5 @@ module.exports = {
   getOrderById,
   listBuyerOrders,
   toPublicOrder,
+  cancelOrder,
 };
