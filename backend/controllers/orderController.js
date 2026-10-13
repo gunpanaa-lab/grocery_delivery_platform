@@ -1,6 +1,7 @@
 const Order = require('../models/Order');
 const { validateOrderPayload } = require('../utils/validators');
 const { getOrderState, OrderStateError } = require('../states/orderStates');
+const orderRepository = require('../repositories/MongoOrderRepository');
 
 // Sub Task 9.3 — the same fixed forward progression enforced on the
 // frontend (GROC-76.1), re-validated server-side so a request can't
@@ -133,4 +134,21 @@ const cancelOrder = async (req, res) => {
   }
 };
 
-module.exports = { placeOrder, listSellerOrders, updateOrderStatus, getOrderById, cancelOrder, toPublicOrder };
+const listBuyerOrders = async (req, res) => {
+  try {
+    const orders = await orderRepository.findByBuyer(req.user.id);
+    return res.json(orders.map(toPublicOrder));
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = {
+  placeOrder,
+  listSellerOrders,
+  updateOrderStatus,
+  getOrderById,
+  listBuyerOrders,
+  toPublicOrder,
+  cancelOrder,
+};

@@ -10,6 +10,7 @@ import Cart from './pages/buyer/Cart';
 import Checkout from './pages/buyer/Checkout';
 import OrderBoard from './pages/seller/OrderBoard';
 import OrderTracking from './pages/buyer/OrderTracking';
+import OrderHistory from './pages/buyer/OrderHistory';
 
 function App() {
   return (
@@ -27,6 +28,8 @@ function App() {
         <Route path="/seller/orders" element={<OrderBoard />} />
         <Route path="/seller/products/new" element={<ProductForm />} />
         <Route path="/seller/products/:id/edit" element={<ProductForm />} />
+        <Route path="/orders/history" element={<OrderHistory />} />
+        <Route path="/orders/:id" element={<OrderTracking />} />
       </Routes>
     </BrowserRouter>
   );

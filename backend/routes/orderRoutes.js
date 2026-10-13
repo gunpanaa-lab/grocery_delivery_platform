@@ -5,6 +5,7 @@ const {
   listSellerOrders,
   updateOrderStatus,
   getOrderById,
+  listBuyerOrders,
   cancelOrder,
 } = require('../controllers/orderController');
 
@@ -18,9 +19,10 @@ router.post('/', protect, requireRole('buyer'), placeOrder);
 router.get('/mine', protect, requireRole('seller'), listSellerOrders);
 router.patch('/:id/status', protect, requireRole('seller'), updateOrderStatus);
 
+router.get('/history', protect, requireRole('buyer'), listBuyerOrders);
+
 // Buyer-only order tracking (GROC-86).
 router.get('/:id', protect, requireRole('buyer'), getOrderById);
-
 // Buyer-only order cancellation (GDP-103, FR-13).
 router.patch('/:id/cancel', protect, requireRole('buyer'), cancelOrder);
 
