@@ -8,7 +8,7 @@ const {
   createProduct,
   updateProduct,
   deleteProduct,
-  setProductStock,
+  updateProductStock,
 } = require('../controllers/productController');
 
 const { expect } = chai;
@@ -103,6 +103,38 @@ describe('productController (GROC-21 seller catalog)', () => {
       expect(createStub.calledOnceWith(sinon.match({ seller: sellerId, name: 'Apples' }))).to.be.true;
       expect(res.status.calledWith(201)).to.be.true;
     });
+
+    it('defaults stockQty to 0 (out of stock) when not provided', async () => {
+      const sellerId = new mongoose.Types.ObjectId();
+      const created = { _id: new mongoose.Types.ObjectId(), seller: sellerId, name: 'Apples', price: 2.5 };
+      const createStub = sinon.stub(Product, 'create').resolves(created);
+
+      const req = {
+        user: { id: sellerId },
+        body: { name: 'Apples', price: 2.5, description: '', category: 'produce', imageUrl: '' },
+      };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.spy() };
+
+      await createProduct(req, res);
+
+      expect(createStub.calledOnceWith(sinon.match({ stockQty: 0, inStock: false }))).to.be.true;
+    });
+
+    it('creates with the given stockQty and derives inStock from it', async () => {
+      const sellerId = new mongoose.Types.ObjectId();
+      const created = { _id: new mongoose.Types.ObjectId(), seller: sellerId, name: 'Apples', price: 2.5 };
+      const createStub = sinon.stub(Product, 'create').resolves(created);
+
+      const req = {
+        user: { id: sellerId },
+        body: { name: 'Apples', price: 2.5, description: '', category: 'produce', imageUrl: '', stockQty: 12 },
+      };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.spy() };
+
+      await createProduct(req, res);
+
+      expect(createStub.calledOnceWith(sinon.match({ stockQty: 12, inStock: true }))).to.be.true;
+    });
   });
 
   describe('updateProduct', () => {
@@ -166,6 +198,58 @@ describe('productController (GROC-21 seller catalog)', () => {
       expect(product.save.calledOnce).to.be.true;
       expect(res.status.called).to.be.false;
     });
+
+    it('leaves stockQty/inStock untouched when stockQty is not in the body', async () => {
+      const sellerId = new mongoose.Types.ObjectId();
+      const product = {
+        _id: new mongoose.Types.ObjectId(),
+        seller: sellerId,
+        name: 'Old name',
+        price: 1,
+        stockQty: 7,
+        inStock: true,
+        save: sinon.stub().resolvesThis(),
+      };
+      sinon.stub(Product, 'findById').resolves(product);
+
+      const req = {
+        user: { id: sellerId },
+        params: { id: product._id },
+        body: { name: 'New name', price: 4, description: '', category: 'produce', imageUrl: '' },
+      };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.spy() };
+
+      await updateProduct(req, res);
+
+      expect(product.stockQty).to.equal(7);
+      expect(product.inStock).to.equal(true);
+    });
+
+    it('updates stockQty and re-derives inStock when stockQty is in the body', async () => {
+      const sellerId = new mongoose.Types.ObjectId();
+      const product = {
+        _id: new mongoose.Types.ObjectId(),
+        seller: sellerId,
+        name: 'Old name',
+        price: 1,
+        stockQty: 7,
+        inStock: true,
+        save: sinon.stub().resolvesThis(),
+      };
+      sinon.stub(Product, 'findById').resolves(product);
+
+      const req = {
+        user: { id: sellerId },
+        params: { id: product._id },
+        body: { name: 'Old name', price: 1, description: '', category: 'produce', imageUrl: '', stockQty: 0 },
+      };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.spy() };
+
+      await updateProduct(req, res);
+
+      expect(product.stockQty).to.equal(0);
+      expect(product.inStock).to.equal(false);
+    });
   });
 
   describe('deleteProduct', () => {
@@ -200,12 +284,41 @@ describe('productController (GROC-21 seller catalog)', () => {
     });
   });
 
-  describe('setProductStock', () => {
-    it('returns 400 when inStock is not a boolean', async () => {
-      const req = { user: { id: new mongoose.Types.ObjectId() }, params: { id: new mongoose.Types.ObjectId() }, body: { inStock: 'yes' } };
+  // Replaces the old setProductStock suite — the endpoint now takes a
+  // { quantity } body instead of { inStock }, and inStock is derived
+  // from the quantity rather than set directly.
+  describe('updateProductStock', () => {
+    it('returns 400 when quantity is missing', async () => {
+      const req = { user: { id: new mongoose.Types.ObjectId() }, params: { id: new mongoose.Types.ObjectId() }, body: {} };
       const res = { status: sinon.stub().returnsThis(), json: sinon.spy() };
 
-      await setProductStock(req, res);
+      await updateProductStock(req, res);
+
+      expect(res.status.calledWith(400)).to.be.true;
+    });
+
+    it('returns 400 when quantity is negative', async () => {
+      const req = {
+        user: { id: new mongoose.Types.ObjectId() },
+        params: { id: new mongoose.Types.ObjectId() },
+        body: { quantity: -1 },
+      };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.spy() };
+
+      await updateProductStock(req, res);
+
+      expect(res.status.calledWith(400)).to.be.true;
+    });
+
+    it('returns 400 when quantity is not a whole number', async () => {
+      const req = {
+        user: { id: new mongoose.Types.ObjectId() },
+        params: { id: new mongoose.Types.ObjectId() },
+        body: { quantity: 2.5 },
+      };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.spy() };
+
+      await updateProductStock(req, res);
 
       expect(res.status.calledWith(400)).to.be.true;
     });
@@ -214,28 +327,47 @@ describe('productController (GROC-21 seller catalog)', () => {
       const product = { seller: new mongoose.Types.ObjectId(), save: sinon.stub().resolvesThis() };
       sinon.stub(Product, 'findById').resolves(product);
 
-      const req = { user: { id: new mongoose.Types.ObjectId() }, params: { id: new mongoose.Types.ObjectId() }, body: { inStock: false } };
+      const req = {
+        user: { id: new mongoose.Types.ObjectId() },
+        params: { id: new mongoose.Types.ObjectId() },
+        body: { quantity: 5 },
+      };
       const res = { status: sinon.stub().returnsThis(), json: sinon.spy() };
 
-      await setProductStock(req, res);
+      await updateProductStock(req, res);
 
       expect(res.status.calledWith(403)).to.be.true;
       expect(product.save.called).to.be.false;
     });
 
-    it('updates inStock when the requester is the owning seller', async () => {
+    it('sets stockQty and derives inStock=true when the requester is the owning seller', async () => {
       const sellerId = new mongoose.Types.ObjectId();
-      const product = { seller: sellerId, inStock: true, save: sinon.stub().resolvesThis() };
+      const product = { seller: sellerId, stockQty: 0, inStock: false, save: sinon.stub().resolvesThis() };
       sinon.stub(Product, 'findById').resolves(product);
 
-      const req = { user: { id: sellerId }, params: { id: new mongoose.Types.ObjectId() }, body: { inStock: false } };
+      const req = { user: { id: sellerId }, params: { id: new mongoose.Types.ObjectId() }, body: { quantity: 5 } };
       const res = { status: sinon.stub().returnsThis(), json: sinon.spy() };
 
-      await setProductStock(req, res);
+      await updateProductStock(req, res);
 
-      expect(product.inStock).to.equal(false);
+      expect(product.stockQty).to.equal(5);
+      expect(product.inStock).to.equal(true);
       expect(product.save.calledOnce).to.be.true;
       expect(res.status.called).to.be.false;
+    });
+
+    it('sets stockQty to 0 and derives inStock=false', async () => {
+      const sellerId = new mongoose.Types.ObjectId();
+      const product = { seller: sellerId, stockQty: 5, inStock: true, save: sinon.stub().resolvesThis() };
+      sinon.stub(Product, 'findById').resolves(product);
+
+      const req = { user: { id: sellerId }, params: { id: new mongoose.Types.ObjectId() }, body: { quantity: 0 } };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.spy() };
+
+      await updateProductStock(req, res);
+
+      expect(product.stockQty).to.equal(0);
+      expect(product.inStock).to.equal(false);
     });
   });
 });
