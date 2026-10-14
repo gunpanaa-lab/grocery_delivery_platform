@@ -49,10 +49,13 @@ function validateLoginPayload(body) {
 
 /**
  * Server-side mirror of the seller Add/Edit Item form (GROC-21).
+ * stockQty is only validated when present — createProduct/updateProduct
+ * both treat a missing stockQty as "leave it alone" rather than an error,
+ * so existing callers that don't send it are unaffected.
  */
 function validateProductPayload(body) {
   const errors = {};
-  const { name, price } = body || {};
+  const { name, price, stockQty } = body || {};
 
   if (!name || !String(name).trim()) {
     errors.name = 'Item name is required.';
@@ -60,6 +63,13 @@ function validateProductPayload(body) {
   const numericPrice = Number(price);
   if (price === undefined || price === null || price === '' || Number.isNaN(numericPrice) || numericPrice <= 0) {
     errors.price = 'Price must be a number greater than 0.';
+  }
+
+  if (stockQty !== undefined && stockQty !== null && stockQty !== '') {
+    const numericQty = Number(stockQty);
+    if (Number.isNaN(numericQty) || numericQty < 0 || !Number.isInteger(numericQty)) {
+      errors.stockQty = 'Stock quantity must be a whole number of 0 or more.';
+    }
   }
 
   return errors;
