@@ -135,23 +135,28 @@ const browseProducts = async (req, res) => {
   }
 };
 
-// New — seller sets the exact stock quantity for an item (the inline
-// +/- stepper on the "My shop" list calls this on every click).
-// inStock is derived automatically from the quantity rather than
-// toggled by hand, so the badge buyers see can never go stale.
+// GROC-30 — seller stock updates. The endpoint accepts two body shapes:
+//   { quantity } — the exact unit count (the inline stepper / edit form).
+//                  inStock is derived from it, so the two can never drift.
+//   { inStock }  — the "Mark in/out of stock" button on the shop list.
+//                  Flips the status directly without destroying the stored
+//                  count: pausing an item that still has stock keeps that
+//                  count, so re-enabling restores the true quantity. An item
+//                  with 0 units gets a placeholder of 1 when re-enabled so
+//                  it is actually sellable; the seller can then correct the
+//                  exact count via the { quantity } path.
 const updateProductStock = async (req, res) => {
-  const { quantity } = req.body;
-  const numericQuantity = Number(quantity);
+  const { quantity, inStock } = req.body;
+  const hasQuantity = quantity !== undefined && quantity !== null && quantity !== '';
 
-  if (
-    quantity === undefined ||
-    quantity === null ||
-    quantity === '' ||
-    Number.isNaN(numericQuantity) ||
-    numericQuantity < 0 ||
-    !Number.isInteger(numericQuantity)
-  ) {
-    return res.status(400).json({ message: 'quantity must be a whole number of 0 or more' });
+  let numericQuantity;
+  if (hasQuantity) {
+    numericQuantity = Number(quantity);
+    if (Number.isNaN(numericQuantity) || numericQuantity < 0 || !Number.isInteger(numericQuantity)) {
+      return res.status(400).json({ message: 'quantity must be a whole number of 0 or more' });
+    }
+  } else if (typeof inStock !== 'boolean') {
+    return res.status(400).json({ message: 'Provide a whole-number quantity or a boolean inStock' });
   }
 
   try {
@@ -163,8 +168,16 @@ const updateProductStock = async (req, res) => {
       return res.status(403).json({ message: 'You can only update your own items' });
     }
 
-    product.stockQty = numericQuantity;
-    product.inStock = numericQuantity > 0;
+    if (hasQuantity) {
+      product.stockQty = numericQuantity;
+      product.inStock = numericQuantity > 0;
+    } else {
+      product.inStock = inStock;
+      if (inStock && product.stockQty < 1) {
+        product.stockQty = 1;
+      }
+    }
+
     await product.save();
 
     return res.json(toPublicProduct(product));

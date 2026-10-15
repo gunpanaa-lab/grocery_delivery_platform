@@ -10,9 +10,10 @@ const productSchema = new mongoose.Schema(
     price: { type: Number, required: true, min: 0 },
     category: { type: String, enum: CATEGORIES, default: 'other' },
     imageUrl: { type: String, default: '' },
-    // New — how many units the seller has on hand. inStock is now
-    // derived from this (stockQty > 0) rather than toggled by hand, so
-    // the two can never drift out of sync with each other.
+    // How many units the seller has on hand. Any API path that sets
+    // stockQty derives inStock from it (stockQty > 0), so the two never
+    // drift; the manual in/out-of-stock toggle flips inStock without
+    // touching the stored count.
     stockQty: { type: Number, default: 0, min: 0 },
     inStock: { type: Boolean, default: false },
   },
