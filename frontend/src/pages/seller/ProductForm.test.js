@@ -70,6 +70,37 @@ describe('ProductForm (GROC-21)', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/seller');
   });
 
+  test('sends the stock quantity the seller enters (regression: field key must match the API contract)', async () => {
+    createProduct.mockResolvedValueOnce({ id: 'p1', name: 'Apples', price: 2.5, stockQty: 5 });
+    const user = userEvent.setup();
+    renderNew();
+
+    await user.type(screen.getByLabelText(/item name/i), 'Apples');
+    await user.type(screen.getByLabelText(/price/i), '2.5');
+    await user.type(screen.getByLabelText(/stock quantity/i), '5');
+    await user.click(screen.getByRole('button', { name: /add item/i }));
+
+    await screen.findByRole('button', { name: /add item/i });
+    expect(createProduct).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'Apples', price: 2.5, stockQty: 5 })
+    );
+  });
+
+  test('pre-fills stock quantity from the product in router state when editing', async () => {
+    const product = {
+      id: 'p1',
+      name: 'Apples',
+      description: 'Crisp red apples',
+      price: 2.5,
+      category: 'produce',
+      imageUrl: '',
+      stockQty: 12,
+    };
+    renderEdit(product);
+
+    expect(screen.getByLabelText(/stock quantity/i)).toHaveValue(12);
+  });
+
   test('pre-fills the form and calls updateProduct when editing', async () => {
     const product = {
       id: 'p1',
