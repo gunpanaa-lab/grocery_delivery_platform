@@ -6,7 +6,7 @@ const {
   createProduct,
   updateProduct,
   deleteProduct,
-  setProductStock,
+  updateProductStock,
 } = require('../controllers/productController');
 
 const router = express.Router();
@@ -19,6 +19,8 @@ router.get('/mine', protect, requireRole('seller'), listMyProducts);
 router.post('/', protect, requireRole('seller'), createProduct);
 router.put('/:id', protect, requireRole('seller'), updateProduct);
 router.delete('/:id', protect, requireRole('seller'), deleteProduct);
-router.patch('/:id/stock', protect, requireRole('seller'), setProductStock);
+// Same path as before — the contract changed from { inStock } to
+// { quantity }, with inStock now derived server-side.
+router.patch('/:id/stock', protect, requireRole('seller'), updateProductStock);
 
 module.exports = router;
