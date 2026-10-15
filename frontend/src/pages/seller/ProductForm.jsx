@@ -8,6 +8,7 @@ const emptyForm = {
   description: '',
   price: '',
   category: CATEGORIES[0],
+  stockQty: '',
   imageUrl: '',
 };
 
@@ -44,7 +45,11 @@ export default function ProductForm() {
       return;
     }
 
-    const payload = { ...form, price: Number(form.price) };
+    const payload = {
+      ...form,
+      price: Number(form.price),
+      stockQty: Number(form.stockQty ?? 0),
+    };
     setSubmitting(true);
     try {
       if (isEditing) {
@@ -114,11 +119,11 @@ export default function ProductForm() {
         </div>
         <Field
           label="Stock Quantity"
-          name="StockQty"
+          name="stockQty"
           type="number"
-          value={form.StockQty}
+          value={form.stockQty ?? ''}
           onChange={handleChange}
-          error={errors.StockQty}
+          error={errors.stockQty}
           required
         />
         <Field
@@ -153,7 +158,7 @@ function toFormValues(product) {
     name: product.name || '',
     description: product.description || '',
     price: product.price ?? '',
-    StockQty: product.StockQty ?? '',
+    stockQty: product.stockQty ?? '',
     category: product.category || CATEGORIES[0],
     imageUrl: product.imageUrl || '',
   };
