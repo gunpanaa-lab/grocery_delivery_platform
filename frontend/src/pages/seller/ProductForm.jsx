@@ -92,6 +92,7 @@ export default function ProductForm() {
           value={form.price}
           onChange={handleChange}
           error={errors.price}
+          required
         />
         <div className="mb-4">
           <label htmlFor="category" className="block text-sm font-medium mb-1">
@@ -111,6 +112,15 @@ export default function ProductForm() {
             ))}
           </select>
         </div>
+        <Field
+          label="Stock Quantity"
+          name="StockQty"
+          type="number"
+          value={form.StockQty}
+          onChange={handleChange}
+          error={errors.StockQty}
+          required
+        />
         <Field
           label="Image URL"
           name="imageUrl"
@@ -143,6 +153,7 @@ function toFormValues(product) {
     name: product.name || '',
     description: product.description || '',
     price: product.price ?? '',
+    StockQty: product.StockQty ?? '',
     category: product.category || CATEGORIES[0],
     imageUrl: product.imageUrl || '',
   };

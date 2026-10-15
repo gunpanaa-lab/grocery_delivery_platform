@@ -10,7 +10,7 @@ function toPublicProduct(product) {
     price: product.price,
     category: product.category,
     imageUrl: product.imageUrl,
-    stockQty: product.stockQty,
+    stockQty: product.stockQty > 0 ? product.stockQty : 0,
     inStock: product.inStock,
   };
 }
@@ -48,7 +48,7 @@ const createProduct = async (req, res) => {
       price,
       category,
       imageUrl,
-      stockQty: numericQty,
+      stockQty: numericQty > 0 ? numericQty : 0,
       inStock: numericQty > 0,
     });
     return res.status(201).json(toPublicProduct(product));
