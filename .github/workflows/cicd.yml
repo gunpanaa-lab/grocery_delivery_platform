@@ -55,13 +55,18 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             set -e
-            cd ${{ secrets.EC2_APP_DIR }}
-            git fetch origin main
-            git reset --hard origin/main
-            npm install --prefix backend --omit=dev
-            cd backend
-            pm2 reload ecosystem.config.js --update-env || pm2 start ecosystem.config.js
-            pm2 save
+            cd ~/grocery_delivery_platform
+            echo "==> Pulling latest code..."
+            git pull origin main
+            echo "==> Installing dependencies..."
+            npm run install-all
+            echo "==> Restarting backend..."
+            cd backend && pm2 restart grocer-backend
+            echo "==> Rebuilding frontend..."
+            cd ../frontend && npm run build
+            pm2 restart grocer-frontend
+            echo "==> Done"
+            pm2 status
 
       - name: Deploy to EC2 instance #2
         uses: appleboy/ssh-action@v1.2.0
@@ -72,10 +77,15 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             set -e
-            cd ${{ secrets.EC2_APP_DIR }}
-            git fetch origin main
-            git reset --hard origin/main
-            npm install --prefix backend --omit=dev
-            cd backend
-            pm2 reload ecosystem.config.js --update-env || pm2 start ecosystem.config.js
-            pm2 save
+            cd ~/grocery_delivery_platform
+            echo "==> Pulling latest code..."
+            git pull origin main
+            echo "==> Installing dependencies..."
+            npm run install-all
+            echo "==> Restarting backend..."
+            cd backend && pm2 restart grocer-backend
+            echo "==> Rebuilding frontend..."
+            cd ../frontend && npm run build
+            pm2 restart grocer-frontend
+            echo "==> Done"
+            pm2 status
