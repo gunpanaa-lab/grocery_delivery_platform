@@ -1,0 +1,79 @@
+name: CI/CD
+
+# DevOps epic — "Set up GitHub Actions CI/CD workflow" (Section 5 of the
+# report): tests run on every push and every PR into main; a push to main
+# that passes those tests deploys the backend to both EC2 instances behind
+# the ALB (Section 6), so the load-balanced pair never runs untested code.
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Run backend + frontend tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies (root, backend, frontend)
+        run: npm run install-all
+
+      - name: Run backend tests (mocha/chai/sinon)
+        run: npm run test:backend
+
+      - name: Run frontend tests (Jest/RTL)
+        run: npm run test:frontend
+        env:
+          CI: true
+
+  deploy:
+    name: Deploy backend to both EC2 instances
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      # Each step targets one EC2 instance behind the ALB's target group
+      # (Section 6). They run one after another on purpose, not in
+      # parallel: if instance #1's deploy fails, instance #2 is left on
+      # the previous working build instead of taking the whole backend
+      # down at once.
+      - name: Deploy to EC2 instance #1
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST_1 }}
+          username: ${{ secrets.EC2_SSH_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
+            cd ${{ secrets.EC2_APP_DIR }}
+            git fetch origin main
+            git reset --hard origin/main
+            npm install --prefix backend --omit=dev
+            cd backend
+            pm2 reload ecosystem.config.js --update-env || pm2 start ecosystem.config.js
+            pm2 save
+
+      - name: Deploy to EC2 instance #2
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST_2 }}
+          username: ${{ secrets.EC2_SSH_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
+            cd ${{ secrets.EC2_APP_DIR }}
+            git fetch origin main
+            git reset --hard origin/main
+            npm install --prefix backend --omit=dev
+            cd backend
+            pm2 reload ecosystem.config.js --update-env || pm2 start ecosystem.config.js
+            pm2 save
