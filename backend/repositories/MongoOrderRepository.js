@@ -1,33 +1,23 @@
-const Order = require('../models/Order');
 const OrderRepository = require('./OrderRepository');
+const MongoOrderDataSource = require('./MongoOrderDataSource');
 
 /**
- * Mongoose-backed implementation of OrderRepository (buyer order
- * history feature). Every Mongoose/MongoDB detail — query shape, sort
- * order, the underlying collection — stays behind this class, so
- * orderController never has to import the Order model directly for
- * the operations exposed here.
+ * Composition root for the Bridge: wires the Abstraction
+ * (OrderRepository) to its Concrete Implementor (MongoOrderDataSource)
+ * exactly once, and exports the resulting object as a shared
+ * singleton — mirroring how models/Order.js exports a single
+ * configured model rather than the class itself, so every caller
+ * (orderController) shares one repository without re-instantiating it.
+ *
+ * This file's name/path hasn't changed from before the refactor, so
+ * nothing that imports it — orderController.js, orderController.test.js —
+ * needs to change. They only ever call methods on the object this file
+ * exports; they were never aware of (and still aren't aware of) how
+ * it's wired together underneath.
  */
-class MongoOrderRepository extends OrderRepository {
-  async findByBuyer(buyerId) {
-    return Order.find({ buyer: buyerId }).sort({ createdAt: -1 });
-  }
+module.exports = new OrderRepository(new MongoOrderDataSource());
 
-  async findBySeller(sellerId) {
-    return Order.find({ seller: sellerId }).sort({ createdAt: -1 });
-  }
-
-  async findById(id) {
-    return Order.findById(id);
-  }
-
-  async create(orderData) {
-    return Order.create(orderData);
-  }
-}
-
-// Exported as a singleton instance — mirrors how models/Order.js
-// exports a single configured model rather than the class itself, so
-// every caller shares one repository without re-instantiating it.
-module.exports = new MongoOrderRepository();
-module.exports.MongoOrderRepository = MongoOrderRepository;
+// Exposed for tests / callers that need the classes themselves rather
+// than the pre-wired singleton instance.
+module.exports.OrderRepository = OrderRepository;
+module.exports.MongoOrderDataSource = MongoOrderDataSource;
