@@ -64,7 +64,7 @@ jobs:
             cd backend && pm2 restart grocer-backend || pm2 start server.js --name grocer-backend
             echo "==> Rebuilding frontend..."
             cd ../frontend && npm run build
-            pm2 restart grocer-frontend
+            pm2 restart grocer-frontend || pm2 start "serve -s build -l 3000" --name grocer-frontend
             echo "==> Done"
             pm2 status
 
