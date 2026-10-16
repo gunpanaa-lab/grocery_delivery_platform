@@ -17,7 +17,7 @@ export default function Home() {
       >
         Start shopping
       </Link>
-      <p className="text-sm text-gray-400 mb-4">Have an account?</p>
+      <p className="text-sm text-gray-400 mb-4">Already have an account?</p>
       <Link
         to="/login"
         className="w-full max-w-sm border border-gray-300 py-3 rounded-lg mb-3 font-medium"
