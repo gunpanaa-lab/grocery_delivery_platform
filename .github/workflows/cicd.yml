@@ -10,6 +10,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   test:
@@ -28,7 +29,7 @@ jobs:
         run: npm run install-all
 
       - name: Run backend tests (mocha/chai/sinon)
-        run: npm run test:backend
+        run: npm run test:backend -- --reporter spec
 
       - name: Run frontend tests (Jest/RTL)
         run: npm run test:frontend
@@ -50,7 +51,7 @@ jobs:
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.EC2_HOST_1 }}
-          # port: ${{ secrets.EC2_SSH_PORT }}
+          port: ${{ secrets.EC2_SSH_PORT }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
@@ -72,7 +73,7 @@ jobs:
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.EC2_HOST_2 }}
-          # port: ${{ secrets.EC2_SSH_PORT }}
+          port: ${{ secrets.EC2_SSH_PORT }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
