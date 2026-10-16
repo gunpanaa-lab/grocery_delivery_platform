@@ -284,9 +284,8 @@ describe('productController (GROC-21 seller catalog)', () => {
     });
   });
 
-  // Replaces the old setProductStock suite — the endpoint now takes a
-  // { quantity } body instead of { inStock }, and inStock is derived
-  // from the quantity rather than set directly.
+  // The endpoint accepts { quantity } (exact count; inStock derived)
+  // or { inStock } (manual in/out-of-stock toggle from the shop list).
   describe('updateProductStock', () => {
     it('returns 400 when quantity is missing', async () => {
       const req = { user: { id: new mongoose.Types.ObjectId() }, params: { id: new mongoose.Types.ObjectId() }, body: {} };
@@ -368,6 +367,86 @@ describe('productController (GROC-21 seller catalog)', () => {
 
       expect(product.stockQty).to.equal(0);
       expect(product.inStock).to.equal(false);
+    });
+
+    it('flips inStock=false via the manual toggle and keeps the stored quantity', async () => {
+      const sellerId = new mongoose.Types.ObjectId();
+      const product = { seller: sellerId, stockQty: 5, inStock: true, save: sinon.stub().resolvesThis() };
+      sinon.stub(Product, 'findById').resolves(product);
+
+      const req = { user: { id: sellerId }, params: { id: new mongoose.Types.ObjectId() }, body: { inStock: false } };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.spy() };
+
+      await updateProductStock(req, res);
+
+      expect(product.inStock).to.equal(false);
+      expect(product.stockQty).to.equal(5);
+      expect(product.save.calledOnce).to.be.true;
+      expect(res.status.called).to.be.false;
+    });
+
+    it('flips inStock=true via the manual toggle and restores the stored quantity', async () => {
+      const sellerId = new mongoose.Types.ObjectId();
+      const product = { seller: sellerId, stockQty: 5, inStock: false, save: sinon.stub().resolvesThis() };
+      sinon.stub(Product, 'findById').resolves(product);
+
+      const req = { user: { id: sellerId }, params: { id: new mongoose.Types.ObjectId() }, body: { inStock: true } };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.spy() };
+
+      await updateProductStock(req, res);
+
+      expect(product.inStock).to.equal(true);
+      expect(product.stockQty).to.equal(5);
+      expect(product.save.calledOnce).to.be.true;
+    });
+
+    it('gives a 1-unit placeholder when re-enabling an item with 0 stock', async () => {
+      const sellerId = new mongoose.Types.ObjectId();
+      const product = { seller: sellerId, stockQty: 0, inStock: false, save: sinon.stub().resolvesThis() };
+      sinon.stub(Product, 'findById').resolves(product);
+
+      const req = { user: { id: sellerId }, params: { id: new mongoose.Types.ObjectId() }, body: { inStock: true } };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.spy() };
+
+      await updateProductStock(req, res);
+
+      expect(product.inStock).to.equal(true);
+      expect(product.stockQty).to.equal(1);
+    });
+
+    it('returns 400 when inStock is present but not a boolean', async () => {
+      const req = {
+        user: { id: new mongoose.Types.ObjectId() },
+        params: { id: new mongoose.Types.ObjectId() },
+        body: { inStock: 'yes' },
+      };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.spy() };
+
+      await updateProductStock(req, res);
+
+      expect(res.status.calledWith(400)).to.be.true;
+    });
+
+    it('returns 403 on the toggle path when the product belongs to a different seller', async () => {
+      const product = {
+        seller: new mongoose.Types.ObjectId(),
+        stockQty: 5,
+        inStock: true,
+        save: sinon.stub().resolvesThis(),
+      };
+      sinon.stub(Product, 'findById').resolves(product);
+
+      const req = {
+        user: { id: new mongoose.Types.ObjectId() },
+        params: { id: new mongoose.Types.ObjectId() },
+        body: { inStock: false },
+      };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.spy() };
+
+      await updateProductStock(req, res);
+
+      expect(res.status.calledWith(403)).to.be.true;
+      expect(product.save.called).to.be.false;
     });
   });
 });
