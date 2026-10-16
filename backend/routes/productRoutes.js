@@ -19,8 +19,8 @@ router.get('/mine', protect, requireRole('seller'), listMyProducts);
 router.post('/', protect, requireRole('seller'), createProduct);
 router.put('/:id', protect, requireRole('seller'), updateProduct);
 router.delete('/:id', protect, requireRole('seller'), deleteProduct);
-// Same path as before — the contract changed from { inStock } to
-// { quantity }, with inStock now derived server-side.
+// Seller stock updates (GROC-30): { quantity } for the exact count
+// (inStock derived) or { inStock } for the manual in/out-of-stock toggle.
 router.patch('/:id/stock', protect, requireRole('seller'), updateProductStock);
 
 module.exports = router;

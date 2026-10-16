@@ -1,0 +1,1876 @@
+{
+  "info": {
+    "_postman_id": "25b4e457-451a-4420-9e50-283939695eac",
+    "name": "Grocer API - IFN636 A2 (GDP-121 testing)",
+    "description": "Postman tests for FR-13 (GDP-103 cancellation), GDP-100 (order history + /health) and the stock features (GDP-101 / stock quantity). Run the whole collection in order with the Collection Runner: setup requests create fresh users for every run.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "58621233",
+    "_collection_link": "https://go.postman.co/collection/58621233-25b4e457-451a-4420-9e50-283939695eac?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "00 Setup",
+      "item": [
+        {
+          "name": "Health check (GET /health)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('NFR-Availability - status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('NFR-Availability - body reports ok', () => pm.expect(pm.response.json().status).to.eql('ok'));",
+                  "pm.test('NFR-Performance - responds in under 500 ms', () => pm.expect(pm.response.responseTime).to.be.below(500));"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('runId', Date.now());"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "Member 3 NFR availability: the ALB health check target. No token needed."
+          },
+          "response": []
+        },
+        {
+          "name": "Register Buyer A",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Setup - status is 201', () => pm.response.to.have.status(201));",
+                  "const b = pm.response.json();",
+                  "pm.collectionVariables.set('buyerAToken', b.token);",
+                  "pm.collectionVariables.set('buyerAId', b.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"buyer\",\n  \"name\": \"Buyer A\",\n  \"email\": \"buyera.{{runId}}@test.com\",\n  \"address\": \"1 Test St, Brisbane 4000\",\n  \"dob\": \"1995-01-01\",\n  \"password\": \"Password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Setup: create a fresh buyer account for this run."
+          },
+          "response": []
+        },
+        {
+          "name": "Register Buyer B",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Setup - status is 201', () => pm.response.to.have.status(201));",
+                  "const b = pm.response.json();",
+                  "pm.collectionVariables.set('buyerBToken', b.token);",
+                  "pm.collectionVariables.set('buyerBId', b.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"buyer\",\n  \"name\": \"Buyer B\",\n  \"email\": \"buyerb.{{runId}}@test.com\",\n  \"address\": \"1 Test St, Brisbane 4000\",\n  \"dob\": \"1995-01-01\",\n  \"password\": \"Password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Setup: create a fresh buyer account for this run."
+          },
+          "response": []
+        },
+        {
+          "name": "Register Seller A",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Setup - status is 201', () => pm.response.to.have.status(201));",
+                  "const b = pm.response.json();",
+                  "pm.collectionVariables.set('sellerAToken', b.token);",
+                  "pm.collectionVariables.set('sellerAId', b.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"seller\",\n  \"name\": \"Seller A\",\n  \"email\": \"sellera.{{runId}}@test.com\",\n  \"address\": \"1 Test St, Brisbane 4000\",\n  \"dob\": \"1995-01-01\",\n  \"password\": \"Password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Setup: create a fresh seller account for this run."
+          },
+          "response": []
+        },
+        {
+          "name": "Register Seller B",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Setup - status is 201', () => pm.response.to.have.status(201));",
+                  "const b = pm.response.json();",
+                  "pm.collectionVariables.set('sellerBToken', b.token);",
+                  "pm.collectionVariables.set('sellerBId', b.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"seller\",\n  \"name\": \"Seller B\",\n  \"email\": \"sellerb.{{runId}}@test.com\",\n  \"address\": \"1 Test St, Brisbane 4000\",\n  \"dob\": \"1995-01-01\",\n  \"password\": \"Password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Setup: create a fresh seller account for this run."
+          },
+          "response": []
+        },
+        {
+          "name": "Seller A creates product (stockQty 5)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Setup - status is 201', () => pm.response.to.have.status(201));",
+                  "pm.test('product starts with 5 in stock', () => { pm.expect(pm.response.json().stockQty).to.eql(5); pm.expect(pm.response.json().inStock).to.eql(true); });",
+                  "pm.collectionVariables.set('productId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sellerAToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Apples\",\n  \"description\": \"Postman test item\",\n  \"price\": 2.5,\n  \"category\": \"produce\",\n  \"stockQty\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ]
+            },
+            "description": "Setup: one product with 5 units in stock."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "01 FR-13 Order cancellation (GDP-103, member 2)",
+      "item": [
+        {
+          "name": "Buyer A places order 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Setup - status is 201', () => pm.response.to.have.status(201));",
+                  "pm.test('new order starts as placed', () => pm.expect(pm.response.json().status).to.eql('placed'));",
+                  "pm.collectionVariables.set('order1Id', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{buyerAToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"product\": \"{{productId}}\",\n      \"name\": \"Apples\",\n      \"price\": 2.5,\n      \"quantity\": 2\n    }\n  ],\n  \"seller\": \"{{sellerAId}}\",\n  \"deliveryAddress\": \"1 Test St, Brisbane 4000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
+            "description": "Setup step: buyer A places an order (status starts as placed)."
+          },
+          "response": []
+        },
+        {
+          "name": "FR-13 Buyer cancels own placed order -> 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('FR-13 - status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('FR-13 - status is now cancelled', () => pm.expect(pm.response.json().status).to.eql('cancelled'));",
+                  "pm.test('FR-13 - response returns the same order id', () => pm.expect(pm.response.json().id).to.eql(pm.collectionVariables.get('order1Id')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{buyerAToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{order1Id}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{order1Id}}",
+                "cancel"
+              ]
+            },
+            "description": "FR-13 / GDP-103 AC1: success path."
+          },
+          "response": []
+        },
+        {
+          "name": "FR-13 GET order 1 shows cancelled",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('FR-13 - status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('FR-13 - stored status is cancelled', () => pm.expect(pm.response.json().status).to.eql('cancelled'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{buyerAToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{order1Id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{order1Id}}"
+              ]
+            },
+            "description": "FR-13 / GDP-103 AC1: the change is saved in the database, not only in the response."
+          },
+          "response": []
+        },
+        {
+          "name": "FR-13 Cancel the same order again -> 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('FR-13 - status is 400', () => pm.response.to.have.status(400));",
+                  "pm.test('message mentions \"cannot be cancelled\"', () => pm.expect(pm.response.json().message).to.include(\"cannot be cancelled\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{buyerAToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{order1Id}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{order1Id}}",
+                "cancel"
+              ]
+            },
+            "description": "FR-13 edge case: a cancelled order cannot be cancelled again (CancelledState)."
+          },
+          "response": []
+        },
+        {
+          "name": "Buyer A places order 2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Setup - status is 201', () => pm.response.to.have.status(201));",
+                  "pm.test('new order starts as placed', () => pm.expect(pm.response.json().status).to.eql('placed'));",
+                  "pm.collectionVariables.set('order2Id', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{buyerAToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"product\": \"{{productId}}\",\n      \"name\": \"Apples\",\n      \"price\": 2.5,\n      \"quantity\": 2\n    }\n  ],\n  \"seller\": \"{{sellerAId}}\",\n  \"deliveryAddress\": \"1 Test St, Brisbane 4000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
+            "description": "Setup step: buyer A places an order (status starts as placed)."
+          },
+          "response": []
+        },
+        {
+          "name": "Seller A moves order 2 to preparing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Setup - status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('order 2 is preparing', () => pm.expect(pm.response.json().status).to.eql('preparing'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sellerAToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"preparing\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{order2Id}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{order2Id}}",
+                "status"
+              ]
+            },
+            "description": "Setup: move the order past placed."
+          },
+          "response": []
+        },
+        {
+          "name": "FR-13 Cancel a preparing order -> 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('FR-13 - status is 400', () => pm.response.to.have.status(400));",
+                  "pm.test('message mentions \"preparing\"', () => pm.expect(pm.response.json().message).to.include(\"preparing\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{buyerAToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{order2Id}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{order2Id}}",
+                "cancel"
+              ]
+            },
+            "description": "FR-13 / GDP-103 AC2: rejected after placed; status unchanged."
+          },
+          "response": []
+        },
+        {
+          "name": "FR-13 GET order 2 is still preparing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('FR-13 - status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('FR-13 - status unchanged (preparing)', () => pm.expect(pm.response.json().status).to.eql('preparing'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{buyerAToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{order2Id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{order2Id}}"
+              ]
+            },
+            "description": "FR-13 / GDP-103 AC2: the rejected request did not change the order."
+          },
+          "response": []
+        },
+        {
+          "name": "Buyer A places order 3",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Setup - status is 201', () => pm.response.to.have.status(201));",
+                  "pm.test('new order starts as placed', () => pm.expect(pm.response.json().status).to.eql('placed'));",
+                  "pm.collectionVariables.set('order3Id', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{buyerAToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"product\": \"{{productId}}\",\n      \"name\": \"Apples\",\n      \"price\": 2.5,\n      \"quantity\": 2\n    }\n  ],\n  \"seller\": \"{{sellerAId}}\",\n  \"deliveryAddress\": \"1 Test St, Brisbane 4000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
+            "description": "Setup step: buyer A places an order (status starts as placed)."
+          },
+          "response": []
+        },
+        {
+          "name": "NFR-Security Other buyer cancels order -> 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('NFR-Security - status is 403', () => pm.response.to.have.status(403));",
+                  "pm.test('message mentions \"your own orders\"', () => pm.expect(pm.response.json().message).to.include(\"your own orders\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{buyerBToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{order3Id}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{order3Id}}",
+                "cancel"
+              ]
+            },
+            "description": "NFR security / GDP-103 AC3: ownership check in the controller."
+          },
+          "response": []
+        },
+        {
+          "name": "NFR-Security Seller uses cancel endpoint -> 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('NFR-Security - status is 403', () => pm.response.to.have.status(403));",
+                  "pm.test('message mentions \"Only buyer accounts\"', () => pm.expect(pm.response.json().message).to.include(\"Only buyer accounts\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sellerAToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{order3Id}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{order3Id}}",
+                "cancel"
+              ]
+            },
+            "description": "NFR security / GDP-103 AC3: blocked by requireRole('buyer') middleware."
+          },
+          "response": []
+        },
+        {
+          "name": "NFR-Security Cancel with no token -> 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('NFR-Security - status is 401', () => pm.response.to.have.status(401));",
+                  "pm.test('message mentions \"no token\"', () => pm.expect(pm.response.json().message).to.include(\"no token\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{order3Id}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{order3Id}}",
+                "cancel"
+              ]
+            },
+            "description": "NFR security: blocked by protect middleware."
+          },
+          "response": []
+        },
+        {
+          "name": "NFR-Security Cancel with invalid token -> 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('NFR-Security - status is 401', () => pm.response.to.have.status(401));",
+                  "pm.test('message mentions \"invalid token\"', () => pm.expect(pm.response.json().message).to.include(\"invalid token\"));"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// A deliberately broken JWT, set here so the test is self-contained.",
+                  "pm.collectionVariables.set('brokenJwt', 'abc.def.ghi');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{brokenJwt}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{order3Id}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{order3Id}}",
+                "cancel"
+              ]
+            },
+            "description": "NFR security: a forged or broken JWT is rejected."
+          },
+          "response": []
+        },
+        {
+          "name": "FR-13 Cancel an order that does not exist -> 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('FR-13 - status is 404', () => pm.response.to.have.status(404));",
+                  "pm.test('message mentions \"Order not found\"', () => pm.expect(pm.response.json().message).to.include(\"Order not found\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{buyerAToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/000000000000000000000000/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "000000000000000000000000",
+                "cancel"
+              ]
+            },
+            "description": "FR-13 error handling: valid ObjectId format, but no order."
+          },
+          "response": []
+        },
+        {
+          "name": "FR-13 Invalid order ID format (known limitation)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('FR-13 known limitation - status is 500', () => pm.response.to.have.status(500));",
+                  "pm.test('response still has a JSON message', () => pm.expect(pm.response.json()).to.have.property('message'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{buyerAToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/abc/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "abc",
+                "cancel"
+              ]
+            },
+            "description": "Known limitation (team decision pending): an invalid ObjectId returns 500. If the team adds an ID check, change this test to expect 400."
+          },
+          "response": []
+        },
+        {
+          "name": "FR-13 GET order 3 is still placed",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('NFR-Security - status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('NFR-Security - status unchanged (placed)', () => pm.expect(pm.response.json().status).to.eql('placed'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{buyerAToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{order3Id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{order3Id}}"
+              ]
+            },
+            "description": "NFR security: the 403/401/404 attempts did not change the order."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02 Order history (GDP-100, member 3)",
+      "item": [
+        {
+          "name": "GDP-100 Buyer A order history -> 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('GDP-100 - status is 200', () => pm.response.to.have.status(200));",
+                  "const orders = pm.response.json();",
+                  "pm.test('GDP-100 - returns the 3 orders buyer A placed', () => pm.expect(orders.length).to.eql(3));",
+                  "pm.test('GDP-100 - every order belongs to buyer A', () => orders.forEach(o => pm.expect(String(o.buyer)).to.eql(pm.collectionVariables.get('buyerAId'))));",
+                  "pm.test('GDP-100 - sorted newest first', () => { for (let i = 1; i < orders.length; i++) pm.expect(new Date(orders[i-1].createdAt) >= new Date(orders[i].createdAt)).to.be.true; });",
+                  "pm.test('GDP-100 AC2 - each order has status, address, date and total', () => orders.forEach(o => pm.expect(o).to.include.keys('status','deliveryAddress','createdAt','total')));",
+                  "pm.test('GDP-103 - the cancelled order shows status cancelled in history', () => pm.expect(orders.map(o => o.status)).to.include('cancelled'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{buyerAToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/history",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "history"
+              ]
+            },
+            "description": "GDP-100 AC1: only this buyer's orders, newest first."
+          },
+          "response": []
+        },
+        {
+          "name": "GDP-100 Buyer B with no orders -> empty list",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('GDP-100 - status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('GDP-100 - empty array', () => pm.expect(pm.response.json()).to.eql([]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{buyerBToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/history",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "history"
+              ]
+            },
+            "description": "GDP-100 AC3: a buyer with no orders gets an empty array."
+          },
+          "response": []
+        },
+        {
+          "name": "GDP-100 Seller requests history -> 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('GDP-100 - status is 403', () => pm.response.to.have.status(403));",
+                  "pm.test('message mentions \"Only buyer accounts\"', () => pm.expect(pm.response.json().message).to.include(\"Only buyer accounts\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sellerAToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/history",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "history"
+              ]
+            },
+            "description": "GDP-100 AC4: sellers cannot use the buyer history endpoint."
+          },
+          "response": []
+        },
+        {
+          "name": "GDP-100 History with no token -> 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('GDP-100 - status is 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/history",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "history"
+              ]
+            },
+            "description": "GDP-100 AC4: not signed in."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "03 Stock quantity (member 1)",
+      "item": [
+        {
+          "name": "Stock Seller sets quantity 10 -> 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Stock - status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Stock - stockQty is 10 and inStock true', () => { pm.expect(pm.response.json().stockQty).to.eql(10); pm.expect(pm.response.json().inStock).to.eql(true); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sellerAToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/products/{{productId}}/stock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{productId}}",
+                "stock"
+              ]
+            },
+            "description": "Seller stock quantity (stock feature): exact count, inStock derived."
+          },
+          "response": []
+        },
+        {
+          "name": "Stock Seller sets quantity 0 -> out of stock",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Stock - status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Stock - stockQty 0 and inStock false', () => { pm.expect(pm.response.json().stockQty).to.eql(0); pm.expect(pm.response.json().inStock).to.eql(false); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sellerAToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/products/{{productId}}/stock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{productId}}",
+                "stock"
+              ]
+            },
+            "description": "Edge case: 0 units means inStock false."
+          },
+          "response": []
+        },
+        {
+          "name": "Stock Negative quantity -> 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('NFR-Data integrity - status is 400', () => pm.response.to.have.status(400));",
+                  "pm.test('message mentions \"whole number\"', () => pm.expect(pm.response.json().message).to.include(\"whole number\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sellerAToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": -1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/products/{{productId}}/stock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{productId}}",
+                "stock"
+              ]
+            },
+            "description": "NFR data integrity: stock can never go negative."
+          },
+          "response": []
+        },
+        {
+          "name": "Stock Decimal quantity -> 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Stock - status is 400', () => pm.response.to.have.status(400));",
+                  "pm.test('message mentions \"whole number\"', () => pm.expect(pm.response.json().message).to.include(\"whole number\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sellerAToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 2.5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/products/{{productId}}/stock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{productId}}",
+                "stock"
+              ]
+            },
+            "description": "Invalid input: quantity must be a whole number."
+          },
+          "response": []
+        },
+        {
+          "name": "Stock Text quantity -> 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Stock - status is 400', () => pm.response.to.have.status(400));",
+                  "pm.test('message mentions \"whole number\"', () => pm.expect(pm.response.json().message).to.include(\"whole number\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sellerAToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": \"ten\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/products/{{productId}}/stock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{productId}}",
+                "stock"
+              ]
+            },
+            "description": "Invalid input: quantity is not a number."
+          },
+          "response": []
+        },
+        {
+          "name": "Stock Empty body -> 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Stock - status is 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sellerAToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/products/{{productId}}/stock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{productId}}",
+                "stock"
+              ]
+            },
+            "description": "Invalid input: no quantity and no inStock."
+          },
+          "response": []
+        },
+        {
+          "name": "Stock Other seller updates product -> 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Stock - status is 403', () => pm.response.to.have.status(403));",
+                  "pm.test('message mentions \"your own items\"', () => pm.expect(pm.response.json().message).to.include(\"your own items\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sellerBToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/products/{{productId}}/stock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{productId}}",
+                "stock"
+              ]
+            },
+            "description": "Security: seller B cannot change seller A's stock."
+          },
+          "response": []
+        },
+        {
+          "name": "Stock Buyer updates stock -> 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Stock - status is 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{buyerAToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/products/{{productId}}/stock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{productId}}",
+                "stock"
+              ]
+            },
+            "description": "Security: buyers cannot change stock."
+          },
+          "response": []
+        },
+        {
+          "name": "Stock Product does not exist -> 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Stock - status is 404', () => pm.response.to.have.status(404));",
+                  "pm.test('message mentions \"Product not found\"', () => pm.expect(pm.response.json().message).to.include(\"Product not found\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sellerAToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/products/000000000000000000000000/stock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "000000000000000000000000",
+                "stock"
+              ]
+            },
+            "description": "Error handling: no product with this id."
+          },
+          "response": []
+        },
+        {
+          "name": "Stock Restore quantity 5",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Setup - status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('stockQty is 5', () => pm.expect(pm.response.json().stockQty).to.eql(5));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sellerAToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/products/{{productId}}/stock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{productId}}",
+                "stock"
+              ]
+            },
+            "description": "Setup for the GDP-101 checks below."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "04 Checkout stock check (GDP-101, member 1)",
+      "item": [
+        {
+          "name": "GDP-101 Order more than stock -> 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('GDP-101 - status is 400', () => pm.response.to.have.status(400));",
+                  "pm.test('GDP-101 - message names the item', () => pm.expect(pm.response.json().message || '').to.include('Apples'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{buyerAToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"product\": \"{{productId}}\",\n      \"name\": \"Apples\",\n      \"price\": 2.5,\n      \"quantity\": 999\n    }\n  ],\n  \"seller\": \"{{sellerAId}}\",\n  \"deliveryAddress\": \"1 Test St, Brisbane 4000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
+            "description": "GDP-101 AC1: quantity 999 > stock 5 must be rejected with 400 and no order created. NOTE: GDP-101 is still To Do, so this test is expected to FAIL until it is implemented."
+          },
+          "response": []
+        },
+        {
+          "name": "Checkout Quantity 0 -> 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Checkout - status is 400', () => pm.response.to.have.status(400));",
+                  "pm.test('message mentions \"Validation failed\"', () => pm.expect(pm.response.json().message).to.include(\"Validation failed\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{buyerAToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"product\": \"{{productId}}\",\n      \"name\": \"Apples\",\n      \"price\": 2.5,\n      \"quantity\": 0\n    }\n  ],\n  \"seller\": \"{{sellerAId}}\",\n  \"deliveryAddress\": \"1 Test St, Brisbane 4000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
+            "description": "Existing validation: each item needs quantity > 0."
+          },
+          "response": []
+        },
+        {
+          "name": "Checkout Empty cart -> 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Checkout - status is 400', () => pm.response.to.have.status(400));",
+                  "pm.test('errors.items is reported', () => pm.expect(pm.response.json().errors).to.have.property('items'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{buyerAToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [],\n  \"seller\": \"{{sellerAId}}\",\n  \"deliveryAddress\": \"1 Test St, Brisbane 4000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
+            "description": "Existing validation: an order needs at least one item."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5001/api"
+    },
+    {
+      "key": "runId",
+      "value": ""
+    },
+    {
+      "key": "buyerAToken",
+      "value": ""
+    },
+    {
+      "key": "buyerAId",
+      "value": ""
+    },
+    {
+      "key": "buyerBToken",
+      "value": ""
+    },
+    {
+      "key": "buyerBId",
+      "value": ""
+    },
+    {
+      "key": "sellerAToken",
+      "value": ""
+    },
+    {
+      "key": "sellerAId",
+      "value": ""
+    },
+    {
+      "key": "sellerBToken",
+      "value": ""
+    },
+    {
+      "key": "sellerBId",
+      "value": ""
+    },
+    {
+      "key": "productId",
+      "value": ""
+    },
+    {
+      "key": "order1Id",
+      "value": ""
+    },
+    {
+      "key": "order2Id",
+      "value": ""
+    },
+    {
+      "key": "order3Id",
+      "value": ""
+    },
+    {
+      "key": "brokenJwt",
+      "value": ""
+    }
+  ]
+}

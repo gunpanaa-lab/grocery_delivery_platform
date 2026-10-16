@@ -8,6 +8,7 @@ const emptyForm = {
   description: '',
   price: '',
   category: CATEGORIES[0],
+  stockQty: '',
   imageUrl: '',
 };
 
@@ -44,7 +45,11 @@ export default function ProductForm() {
       return;
     }
 
-    const payload = { ...form, price: Number(form.price) };
+    const payload = {
+      ...form,
+      price: Number(form.price),
+      stockQty: Number(form.stockQty ?? 0),
+    };
     setSubmitting(true);
     try {
       if (isEditing) {
@@ -92,6 +97,7 @@ export default function ProductForm() {
           value={form.price}
           onChange={handleChange}
           error={errors.price}
+          required
         />
         <div className="mb-4">
           <label htmlFor="category" className="block text-sm font-medium mb-1">
@@ -111,6 +117,15 @@ export default function ProductForm() {
             ))}
           </select>
         </div>
+        <Field
+          label="Stock Quantity"
+          name="stockQty"
+          type="number"
+          value={form.stockQty ?? ''}
+          onChange={handleChange}
+          error={errors.stockQty}
+          required
+        />
         <Field
           label="Image URL"
           name="imageUrl"
@@ -143,6 +158,7 @@ function toFormValues(product) {
     name: product.name || '',
     description: product.description || '',
     price: product.price ?? '',
+    stockQty: product.stockQty ?? '',
     category: product.category || CATEGORIES[0],
     imageUrl: product.imageUrl || '',
   };
