@@ -37,7 +37,7 @@ jobs:
           CI: true
 
   deploy:
-    name: Deploy backend to both EC2 instances \#1 and \#2
+    name: Deploy backend to both EC2 instances
     needs: test
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
@@ -45,6 +45,7 @@ jobs:
       group: deploy
       cancel-in-progress: false
     strategy:
+      max-parallel: 1
       matrix:
         instance: [1, 2]
     steps:
@@ -56,7 +57,7 @@ jobs:
       - name: Deploy to EC2 instance \#${{ matrix.instance }}
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{format('secrets.EC2_HOST_{0}', matrix.instance) }}
+          host: ${{ secrets[format('EC2_HOST_{0}', matrix.instance)] }}
           port: ${{ secrets.EC2_SSH_PORT }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
