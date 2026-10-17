@@ -12,7 +12,7 @@ export default function Checkout() {
   const navigate = useNavigate();
   const [items] = useState(() => getCart());
   const [address, setAddress] = useState(getStoredUser()?.address || '');
-  const [error, setError] = useState(() => getStoredUser()?.address ?? '');
+  const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
