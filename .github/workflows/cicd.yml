@@ -37,41 +37,26 @@ jobs:
           CI: true
 
   deploy:
-    name: Deploy backend to both EC2 instances
+    name: Deploy backend to both EC2 instances \#1 and \#2
     needs: test
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
+    concurrency:
+      group: deploy
+      cancel-in-progress: false
+    strategy:
+      matrix:
+        instance: [1, 2]
     steps:
       # Each step targets one EC2 instance behind the ALB's target group
       # (Section 6). They run one after another on purpose, not in
       # parallel: if instance #1's deploy fails, instance #2 is left on
       # the previous working build instead of taking the whole backend
       # down at once.
-      - name: Deploy to EC2 instance \#1
+      - name: Deploy to EC2 instance \#${{ matrix.instance }}
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{ secrets.EC2_HOST_1 }}
-          port: ${{ secrets.EC2_SSH_PORT }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            cd ~/grocery_delivery_platform
-            echo "==> Pulling latest code..."
-            git pull origin main
-            echo "==> Installing dependencies..."
-            npm run install-all
-            echo "==> Restarting backend..."
-            cd backend && pm2 restart grocer-backend || pm2 start server.js --name grocer-backend
-            echo "==> Rebuilding frontend..."
-            cd ../frontend && npm run build
-            pm2 restart grocer-frontend || pm2 start "serve -s build -l 3000" --name grocer-frontend
-            echo "==> Done"
-            pm2 status
-
-      - name: Deploy to EC2 instance \#2
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.EC2_HOST_2 }}
+          host: ${{format('secrets.EC2_HOST_{0}', matrix.instance) }}
           port: ${{ secrets.EC2_SSH_PORT }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
