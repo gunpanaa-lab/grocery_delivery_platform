@@ -37,7 +37,7 @@ jobs:
           CI: true
 
   deploy:
-    name: Deploy backend to both EC2 instances \#1 and \#2
+    name: Deploy backend to both EC2 instances
     needs: test
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
