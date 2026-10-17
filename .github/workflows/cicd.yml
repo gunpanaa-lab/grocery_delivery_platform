@@ -47,7 +47,7 @@ jobs:
       # parallel: if instance #1's deploy fails, instance #2 is left on
       # the previous working build instead of taking the whole backend
       # down at once.
-      - name: Deploy to EC2 instance #1
+      - name: Deploy to EC2 instance \#1
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.EC2_HOST_1 }}
@@ -68,7 +68,7 @@ jobs:
             echo "==> Done"
             pm2 status
 
-      - name: Deploy to EC2 instance #2
+      - name: Deploy to EC2 instance \#2
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.EC2_HOST_2 }}
