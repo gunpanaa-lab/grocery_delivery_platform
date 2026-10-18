@@ -3,6 +3,10 @@ const { validateOrderPayload } = require('../utils/validators');
 const { getOrderState, OrderStateError } = require('../states/orderStates');
 const orderRepository = require('../repositories/MongoOrderRepository');
 const Product = require('../models/Product');
+const { getStockPolicy } = require('../strategies/stockPolicies').default;
+// The stock rule is a Strategy
+const stockPolicy = getStockPolicy();
+
 
 // Sub Task 9.3 — the same fixed forward progression enforced on the
 // frontend (GROC-76.1), re-validated server-side so a request can't
@@ -48,10 +52,9 @@ const placeOrder = async (req, res) => {
       if (!product) {
         return res.status(400).json({ message: `Product not found: ${item.name}` });
       }
-      if (!product.inStock || product.stockQty < item.quantity) {
-        return res.status(400).json({
-          message: `Not enough stock for "${product.name}". Available: ${product.inStock ? product.stockQty : 0}`,
-        });
+      const check = stockPolicy.checkStock(product, item.quantity);
+      if (!check.allowed) {
+        return res.status(400).json({ message: check.reason });
       }
     }
 
