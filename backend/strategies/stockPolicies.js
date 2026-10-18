@@ -1,6 +1,5 @@
-// Strategies for handling stock policies in the checkout process.
-// Each policy encapsulates exactly one stock rule, so the checkout rule can
-// change without editing orderController.js.
+// GDP-130: Add stock policies.
+// Each policy encapsulates one stock rule
 
 /** Abstract strategy: every policy must implement checkStock(). */
 class StockPolicy {
@@ -11,6 +10,7 @@ class StockPolicy {
   // Shared invariant: an integer greater than 0.
   assertValidQuantity(requestedQty) {
     const qty = Number(requestedQty);
+	// GDP-131: No Negative Quantity
     if (Number.isNaN(qty) || qty <= 0 || !Number.isInteger(qty)) {
       return { allowed: false, reason: 'Ordered quantity must be an integer greater than 0.' };
     }
@@ -26,7 +26,7 @@ class StrictStockPolicy extends StockPolicy {
   checkStock(product, requestedQty) {
     const base = this.assertValidQuantity(requestedQty);
     if (!base.allowed) return base;
-
+	// GDP-131: No Negative Quantity
     if (!product.inStock || product.stockQty < base.qty) {
       return {
         allowed: false,
@@ -36,6 +36,16 @@ class StrictStockPolicy extends StockPolicy {
     return { allowed: true, qty: base.qty };
   }
 }
+
+const POLICIES = { strict: new StrictStockPolicy()};
+
+function getStockPolicy(name = process.env.STOCK_POLICY || 'strict') {
+  const policy = POLICIES[name];
+  if (!policy) throw new Error(`Unknown stock policy: ${name}`);
+  return policy;
+}
+
+export default { StockPolicy, StrictStockPolicy, getStockPolicy };
 
 /** Alternative: accept the order and record the shortfall. */
 // class BackorderPolicy extends StockPolicy {
@@ -50,13 +60,11 @@ class StrictStockPolicy extends StockPolicy {
 //     };
 //   }
 // }
+// const POLICIES = { strict: new StrictStockPolicy() , backorder: new BackorderPolicy() };
+// function getStockPolicy(name = process.env.STOCK_POLICY || 'strict') {
+//   const policy = POLICIES[name];
+//   if (!policy) throw new Error(`Unknown stock policy: ${name}`);
+//   return policy;
+// }
 
-const POLICIES = { strict: new StrictStockPolicy() /*, backorder: new BackorderPolicy() */ };
-
-function getStockPolicy(name = process.env.STOCK_POLICY || 'strict') {
-  const policy = POLICIES[name];
-  if (!policy) throw new Error(`Unknown stock policy: ${name}`);
-  return policy;
-}
-
-export default { StockPolicy, StrictStockPolicy, /*BackorderPolicy,*/ getStockPolicy };
+// export default { StockPolicy, StrictStockPolicy, BackorderPolicy, getStockPolicy };
