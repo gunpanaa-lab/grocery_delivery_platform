@@ -75,5 +75,15 @@ export function validateProductForm(form) {
     errors.price = 'Enter a price greater than $0.';
   }
 
+  // Validate stock quantity field
+  const stock = Number(form.stockQty);
+  if (form.stockQty === '' || form.stockQty === null || form.stockQty === undefined || Number.isNaN(stock) || stock < 0) {
+    errors.stockQty = 'Enter a valid stock quantity (0 or more).';
+  }
+
+  // Validate that stock quantity is an integer
+  if (!errors.stockQty && !Number.isInteger(stock)) {
+    errors.stockQty = 'Stock quantity must be an integer.';
+  }
   return errors;
 }
