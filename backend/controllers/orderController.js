@@ -38,7 +38,7 @@ const placeOrder = async (req, res) => {
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   try {
-    // Validate the stock availability 
+    // Validate the stock availability (GDP-101)
     const productIds = items.map((item) => item.product);
     const products = await Product.find({ _id: { $in: productIds } });
     const productMap = new Map(products.map((p) => [p._id.toString(), p]));
