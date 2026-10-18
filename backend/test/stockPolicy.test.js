@@ -7,7 +7,7 @@ const { expect } = chai;
 
 // Unit tests for the Strategy pattern
 // No Express and no MongoDB
-describe('StockPolicy (GDP-130 Strategy pattern)', () => {
+describe('StockPolicy (GDP-101 Strategy pattern)', () => {
   describe('StrictStockPolicy', () => {
     const policy = new StrictStockPolicy();
 
@@ -34,7 +34,7 @@ describe('StockPolicy (GDP-130 Strategy pattern)', () => {
       expect(result.reason).to.equal('Not enough stock for "Milk". Available: 0');
     });
 
-    it('rejects a negative, zero, decimal or non-numeric quantity (GDP-130)', () => {
+    it('rejects a negative, zero, decimal or non-numeric quantity (GDP-101)', () => {
       const product = { name: 'Milk', inStock: true, stockQty: 10 };
       [-1, 0, 1.5, 'abc'].forEach((qty) => {
         const result = policy.checkStock(product, qty);
@@ -57,7 +57,7 @@ describe('StockPolicy (GDP-130 Strategy pattern)', () => {
 //   });
 
   describe('factory and abstract strategy', () => {
-    // it('getStockPolicy defaults to strict (GDP-130)', () => {
+    // it('getStockPolicy defaults to strict (GDP-101)', () => {
     //   expect(getStockPolicy()).to.be.instanceOf(StrictStockPolicy);
     //   expect(getStockPolicy('backorder')).to.be.instanceOf(BackorderPolicy);
     // });

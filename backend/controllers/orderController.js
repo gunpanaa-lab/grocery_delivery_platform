@@ -51,7 +51,7 @@ const placeOrder = async (req, res) => {
       if (!product) {
         return res.status(400).json({ message: `Product not found: ${item.name}` });
       }
-      // GDP-130: Stock policy check
+      // GDP-101: Server-side stock validation on order placement
       const check = stockPolicy.checkStock(product, item.quantity);
       if (!check.allowed) {
         return res.status(400).json({ message: check.reason });

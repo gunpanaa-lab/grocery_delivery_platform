@@ -1,4 +1,4 @@
-// GDP-130: Add stock policies.
+// GDP-101 Server-side stock validation
 // Each policy encapsulates one stock rule
 
 /** Abstract strategy: every policy must implement checkStock(). */
@@ -20,6 +20,7 @@ class StockPolicy {
 
 /**
  *  GDP-101 Server-side stock validation on order placement:
+ *  GDP-99: Ensure requested quantity is valid.
  *  reject the order if a line item exceeds stock. 
  **/
 class StrictStockPolicy extends StockPolicy {
