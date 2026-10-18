@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getCart, getCartTotal, clearCart } from '../../utils/cart';
 import { placeOrder } from '../../services/orderService';
+import { getStoredUser } from '../../utils/session';
+
 
 // Sub Task 7.2 — Checkout page matching the Figma Checkout screen:
 // order summary, delivery address, and pay-on-delivery as the only
@@ -9,7 +11,7 @@ import { placeOrder } from '../../services/orderService';
 export default function Checkout() {
   const navigate = useNavigate();
   const [items] = useState(() => getCart());
-  const [address, setAddress] = useState('');
+  const [address, setAddress] = useState(getStoredUser()?.address || '');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 

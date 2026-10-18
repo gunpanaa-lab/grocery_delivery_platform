@@ -75,5 +75,16 @@ export function validateProductForm(form) {
     errors.price = 'Enter a price greater than $0.';
   }
 
+  // Validate stock quantity field
+  // mirrors the backend: only checked when a value is actually provided
+  // empty/null/undefined will default to 0".
+  if (form.stockQty !== '' && form.stockQty !== null && form.stockQty !== undefined) {
+    const stock = Number(form.stockQty);
+    if (Number.isNaN(stock) || stock < 0) {
+      errors.stockQty = 'Enter a valid stock quantity (0 or more).';
+    } else if (!Number.isInteger(stock)) {
+      errors.stockQty = 'Stock quantity must be an integer.';
+    }
+  }
   return errors;
 }

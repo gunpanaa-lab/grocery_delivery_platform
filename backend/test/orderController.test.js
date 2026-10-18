@@ -2,6 +2,7 @@ const chai = require('chai');
 const sinon = require('sinon');
 const mongoose = require('mongoose');
 const Order = require('../models/Order');
+const Product = require('../models/Product');
 const orderRepository = require('../repositories/MongoOrderRepository');
 const {
   placeOrder,
@@ -20,8 +21,6 @@ describe('placeOrder (GROC-58 checkout)', () => {
     sinon.restore();
   });
 
-  const validItems = [{ product: new mongoose.Types.ObjectId(), name: 'Apples', price: 2.5, quantity: 2 }];
-
   it('returns 400 with field errors when the payload fails validation', async () => {
     const req = { user: { id: new mongoose.Types.ObjectId() }, body: { items: [] } };
     const res = { status: sinon.stub().returnsThis(), json: sinon.spy() };
@@ -39,12 +38,15 @@ describe('placeOrder (GROC-58 checkout)', () => {
   it('creates the order scoped to the authenticated buyer with a server-computed total', async () => {
     const buyerId = new mongoose.Types.ObjectId();
     const sellerId = new mongoose.Types.ObjectId();
-    const created = { _id: new mongoose.Types.ObjectId(), buyer: buyerId, seller: sellerId, items: validItems, total: 5, status: 'placed' };
+    const productId = new mongoose.Types.ObjectId();
+    const itemsWithId = [{ product: productId, name: 'Apples', price: 2.5, quantity: 2 }];
+    const created = { _id: new mongoose.Types.ObjectId(), buyer: buyerId, seller: sellerId, items: itemsWithId, total: 5, status: 'placed' };
     const createStub = sinon.stub(Order, 'create').resolves(created);
+    sinon.stub(Product, 'find').resolves([{ _id: productId, name: 'Apples', stockQty: 10, inStock: true }]);
 
     const req = {
       user: { id: buyerId },
-      body: { items: validItems, seller: sellerId, deliveryAddress: '123 St 4066' },
+      body: { items: itemsWithId, seller: sellerId, deliveryAddress: '123 St 4066' },
     };
     const res = { status: sinon.stub().returnsThis(), json: sinon.spy() };
 
@@ -59,10 +61,13 @@ describe('placeOrder (GROC-58 checkout)', () => {
   });
 
   it('returns 500 when the database throws', async () => {
+    const productId = new mongoose.Types.ObjectId();
+    const itemsWithId = [{ product: productId, name: 'Apples', price: 2.5, quantity: 2 }];
+    sinon.stub(Product, 'find').resolves([{ _id: productId, name: 'Apples', stockQty: 10, inStock: true }]);
     sinon.stub(Order, 'create').throws(new Error('DB Error'));
     const req = {
       user: { id: new mongoose.Types.ObjectId() },
-      body: { items: validItems, seller: new mongoose.Types.ObjectId(), deliveryAddress: '123 St 4066' },
+      body: { items: itemsWithId, seller: new mongoose.Types.ObjectId(), deliveryAddress: '123 St 4066' },
     };
     const res = { status: sinon.stub().returnsThis(), json: sinon.spy() };
 

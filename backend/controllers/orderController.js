@@ -2,6 +2,7 @@ const Order = require('../models/Order');
 const { validateOrderPayload } = require('../utils/validators');
 const { getOrderState, OrderStateError } = require('../states/orderStates');
 const orderRepository = require('../repositories/MongoOrderRepository');
+const Product = require('../models/Product');
 
 // Sub Task 9.3 — the same fixed forward progression enforced on the
 // frontend (GROC-76.1), re-validated server-side so a request can't
@@ -37,6 +38,23 @@ const placeOrder = async (req, res) => {
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   try {
+    // Validate the stock availability (GDP-101)
+    const productIds = items.map((item) => item.product);
+    const products = await Product.find({ _id: { $in: productIds } });
+    const productMap = new Map(products.map((p) => [p._id.toString(), p]));
+
+    for (const item of items) {
+      const product = productMap.get(String(item.product));
+      if (!product) {
+        return res.status(400).json({ message: `Product not found: ${item.name}` });
+      }
+      if (!product.inStock || product.stockQty < item.quantity) {
+        return res.status(400).json({
+          message: `Not enough stock for "${product.name}". Available: ${product.inStock ? product.stockQty : 0}`,
+        });
+      }
+    }
+
     const order = await Order.create({
       buyer: req.user.id,
       seller,
