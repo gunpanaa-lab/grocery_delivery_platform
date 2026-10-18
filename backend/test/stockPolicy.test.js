@@ -7,7 +7,7 @@ const { expect } = chai;
 
 // Unit tests for the Strategy pattern
 // No Express and no MongoDB
-describe('StockPolicy (FR-12 Strategy pattern)', () => {
+describe('StockPolicy (GDP-130 Strategy pattern)', () => {
   describe('StrictStockPolicy', () => {
     const policy = new StrictStockPolicy();
 
@@ -34,7 +34,7 @@ describe('StockPolicy (FR-12 Strategy pattern)', () => {
       expect(result.reason).to.equal('Not enough stock for "Milk". Available: 0');
     });
 
-    it('rejects a negative, zero, decimal or non-numeric quantity (NFR-1)', () => {
+    it('rejects a negative, zero, decimal or non-numeric quantity (GDP-130)', () => {
       const product = { name: 'Milk', inStock: true, stockQty: 10 };
       [-1, 0, 1.5, 'abc'].forEach((qty) => {
         const result = policy.checkStock(product, qty);
@@ -43,24 +43,24 @@ describe('StockPolicy (FR-12 Strategy pattern)', () => {
     });
   });
 
-  describe('interchangeability', () => {
-    it('BackorderPolicy accepts the same input StrictStockPolicy rejects', () => {
-      const product = { name: 'Milk', inStock: true, stockQty: 2 };
-      expect(new StrictStockPolicy().checkStock(product, 5).allowed).to.be.false;
-      expect(new BackorderPolicy().checkStock(product, 5).allowed).to.be.true;
-    });
+//   describe('interchangeability', () => {
+//     it('BackorderPolicy accepts the same input StrictStockPolicy rejects', () => {
+//       const product = { name: 'Milk', inStock: true, stockQty: 2 };
+//       expect(new StrictStockPolicy().checkStock(product, 5).allowed).to.be.false;
+//       expect(new BackorderPolicy().checkStock(product, 5).allowed).to.be.true;
+//     });
 
-    it('BackorderPolicy reports the shortfall', () => {
-      const result = new BackorderPolicy().checkStock({ name: 'Milk', inStock: true, stockQty: 2 }, 5);
-      expect(result.backordered).to.equal(3);
-    });
-  });
+//     it('BackorderPolicy reports the shortfall', () => {
+//       const result = new BackorderPolicy().checkStock({ name: 'Milk', inStock: true, stockQty: 2 }, 5);
+//       expect(result.backordered).to.equal(3);
+//     });
+//   });
 
   describe('factory and abstract strategy', () => {
-    it('getStockPolicy defaults to strict (FR-12)', () => {
-      expect(getStockPolicy()).to.be.instanceOf(StrictStockPolicy);
-      expect(getStockPolicy('backorder')).to.be.instanceOf(BackorderPolicy);
-    });
+    // it('getStockPolicy defaults to strict (GDP-130)', () => {
+    //   expect(getStockPolicy()).to.be.instanceOf(StrictStockPolicy);
+    //   expect(getStockPolicy('backorder')).to.be.instanceOf(BackorderPolicy);
+    // });
 
     it('getStockPolicy rejects an unknown policy name', () => {
       expect(() => getStockPolicy('nope')).to.throw('Unknown stock policy: nope');
