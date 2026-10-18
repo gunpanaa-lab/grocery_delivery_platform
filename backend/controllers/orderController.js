@@ -44,7 +44,7 @@ const placeOrder = async (req, res) => {
     const productMap = new Map(products.map((p) => [p._id.toString(), p]));
 
     for (const item of items) {
-      const product = productMap.get(item.product);
+      const product = productMap.get(String(item.product));
       if (!product) {
         return res.status(400).json({ message: `Product not found: ${item.name}` });
       }
